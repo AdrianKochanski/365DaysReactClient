@@ -73,7 +73,7 @@ const connectToContract = async (userConnect, setAccount, setContract, setFee, n
 
     try{
         let accounts;
-        
+
         if(userConnect) {
             accounts = await ethereum.request({method: 'eth_requestAccounts'});
         }
@@ -94,7 +94,7 @@ const connectToContract = async (userConnect, setAccount, setContract, setFee, n
         }
     } catch(err)
     {
-
+        console.log(err);
     }
 };
 
