@@ -57,7 +57,7 @@ const getNFTs = async (contract, nfts, setNfts) => {
 const getNftContract = (ethereum) => {
     const provider = new ethers.providers.Web3Provider(ethereum);
     const signer = provider.getSigner();
-    return new ethers.Contract("0x79C61B762cD778238688762e22950F82021b2A2e", nftContractJSON.abi, signer);
+    return new ethers.Contract(process.env.REACT_APP_CONTRACT_ADDRESS, nftContractJSON.abi, signer);
   }
 
 const connectToContract = async (userConnect, setAccount, setContract, setFee, nfts, setNfts) => {
