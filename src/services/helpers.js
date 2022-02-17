@@ -17,6 +17,10 @@ const previewImage = (e, setPreview, setFile) => {
     }
 }
 
+function timeout(delay) {
+    return new Promise( res => setTimeout(res, delay) );
+}
+
 const getIpfsLink = (hash, filenmae) => {
     return `${process.env.REACT_APP_IPFS_ADDRESS}${hash}?filename=${filenmae}`;
 }

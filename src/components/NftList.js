@@ -2,18 +2,18 @@ import React from 'react';
 import { Container, Row, Col, Button, Card } from 'react-bootstrap';
 import { getOwner } from '../services/helpers';
 
-function NftList(props) {
+function NftList({nfts, account}) {
     const showNFTCards = () => {
         const cards = [];
     
-        props.nfts.forEach(nft => {
+        nfts.forEach(nft => {
           cards.push(
             <Col md="auto">
               <Card style={{ width: '18rem' }}>
                 <Card.Img style={{ height: '12rem' }} variant="top" src={nft.image ? nft.image : "placeholder-image.png"} />
                 <Card.Body>
                   <Card.Title>{nft.name ? nft.name : "Metadata does not exist..."}</Card.Title>
-                  <Card.Subtitle className="mb-2 text-muted">{"Owned by: " + getOwner(nft, props.account)}</Card.Subtitle>
+                  <Card.Subtitle className="mb-2 text-muted">{"Owned by: " + getOwner(nft, account)}</Card.Subtitle>
                   <Card.Text>
                     {nft.description ? nft.description : "(...)"}
                   </Card.Text>
