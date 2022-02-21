@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import { Container, Row, Navbar, Nav, Button } from 'react-bootstrap';
 
-import NftList from './NftList';
+import NftCarousel from './NftCarousel';
+import NftDescription from './NftDescription';
 import { shortHash } from '../services/helpers';
 import connectToContract from '../services/days365';
 import MintForm from './Day365Mint';
@@ -12,8 +13,7 @@ function App() {
   const [currentFee, setCurrentFee] = useState("0");
   const [nftContract, setNftContract] = useState(null);
   const [nfts, setNfts] = useState([]);
-  const [previewImg, setPreview] = useState('placeholder-image.png');
-  const [file, setFile] = useState(null);
+  const [currentNft, setCurrentNft] = useState(null);
 
   const connectWalletButton = () => {
     return (
@@ -42,18 +42,20 @@ function App() {
 
       <Container fluid="md">
         <Row style={{marginTop: '1rem'}} className="justify-content-md-center">
-          <NftList nfts={nfts} account={account}></NftList>
+          {
+            currentNft ? 
+            <NftDescription currentNft={currentNft} descriptionHandler={setCurrentNft}/> : 
+            <NftCarousel nfts={nfts} account={account} descriptionHandler={setCurrentNft}/> 
+          }
         </Row>
         <Row style={{marginTop: '1rem'}} className="justify-content-md-center">
           {account ? 
             <MintForm 
+              descriptionHandler={setCurrentNft}
+              currentNft={currentNft}
               nftContract={nftContract} 
               nfts={nfts} 
               setNfts={setNfts} 
-              previewImg={previewImg} 
-              setPreview={setPreview} 
-              file={file} 
-              setFile={setFile} 
               currentFee={currentFee} 
               account={account}/> : connectWalletButton()}
         </Row>

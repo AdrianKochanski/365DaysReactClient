@@ -19,6 +19,7 @@ const getNFTs = async (contract, nfts, setNfts) => {
             const owner = await contract.ownerOf(i+1);
             
             nfts.push({
+                id: i+1,
                 uri: tokenUri,
                 name: "",
                 description: "",
