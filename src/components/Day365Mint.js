@@ -126,21 +126,22 @@ const mintForm = ({nftContract, nfts, setNfts, currentFee, account, currentNft, 
         setLoading(true);
 
         const nft = await handleTokenMetadata();
+        const eventFilter = null;
 
         if(currentNft) {
-          updateNftList(nft);
-          descriptionHandler(0);
-          setLoading(false);
-          clearForm();
+          eventFilter = nftContract.filters.UriChange(nft.tokenId, account);
         }
         else {
-          const eventFilter = nftContract.filters.Transfer(ethers.constants.AddressZero, account, nft.tokenId);
+          eventFilter = nftContract.filters.Transfer(ethers.constants.AddressZero, account, nft.tokenId);
+        }
 
+        if (!!eventFilter) {
           nftContract.provider.on(eventFilter, (log, event) => {
             updateNftList(nft);
+            descriptionHandler(0);
             setLoading(false);
             clearForm();
-          })
+          });
         }
     }
 

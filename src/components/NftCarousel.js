@@ -1,5 +1,5 @@
 import React from 'react';
-import { Carousel, Button } from 'react-bootstrap';
+import { Carousel, Button, Image } from 'react-bootstrap';
 import { getOwner } from '../services/helpers';
 
 function NftCarousel({nfts, account, descriptionHandler}) {
@@ -10,7 +10,7 @@ function NftCarousel({nfts, account, descriptionHandler}) {
             nfts.forEach(nft => {
                 cards.push(
                   <Carousel.Item key={nft.id}>
-                      <img
+                      <Image
                           className="d-block"
                           src={nft.image ? nft.image : "placeholder-image.png"}
                           alt={"Owned by: " + getOwner(nft, account)}

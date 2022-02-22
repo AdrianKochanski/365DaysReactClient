@@ -15,50 +15,68 @@ function App() {
   const [nfts, setNfts] = useState([]);
   const [currentNft, setCurrentNft] = useState(null);
 
-  const connectWalletButton = () => {
-    return (
-      <Button onClick={
-        () => { connectToContract(true, setAccount, setNftContract, setCurrentFee, setNfts); }
-      } variant="info">Connect Wallet</Button>
-    )
-  };
-
   useEffect(() => {
     connectToContract(false, setAccount, setNftContract, setCurrentFee, nfts, setNfts);
   }, []);
+
+  const showSecondRowComponent = () => {
+    let component = null;
+
+    if(account) 
+    {
+      if(!!currentNft && account.toLowerCase() !== currentNft.owner.toLowerCase()) {
+        component = null;
+      }
+      else
+      {
+        component = <MintForm 
+          descriptionHandler={setCurrentNft}
+          currentNft={currentNft}
+          nftContract={nftContract}
+          nfts={nfts}
+          setNfts={setNfts}
+          currentFee={currentFee}
+          account={account}
+        />
+      }
+    }
+    else 
+    {
+      component = <Button onClick={
+        () => { connectToContract(true, setAccount, setNftContract, setCurrentFee, setNfts); }
+      } variant="info">Connect Wallet</Button>
+    }
+
+    if(component != null) {
+      return (<Row style={{marginTop: '1rem', width: '100%'}} className="justify-content-md-center">
+          {component}
+        </Row>
+      );
+    }
+  }
 
   return (
     <div>
       <Navbar bg="dark" variant="dark">
         <Container>
-          <Navbar.Brand href="#home">365 DAY NFT</Navbar.Brand>
+          <Navbar.Brand href="/">365 DAY NFT</Navbar.Brand>
           <Nav className="me-auto">
-            <Nav.Link href="#home">
+            <Nav.Link href={`https://etherscan.io/address/${account}`}>
               Account: {shortHash(account)}
             </Nav.Link>
           </Nav>
         </Container>
       </Navbar>
 
-      <Container fluid="md">
-        <Row style={{marginTop: '1rem'}} className="justify-content-md-center">
+      <Container fluid="md" style={{width: '100%'}}>
+        <Row style={{marginTop: '1rem', width: '100%'}} className="justify-content-md-center">
           {
             currentNft ? 
-            <NftDescription currentNft={currentNft} descriptionHandler={setCurrentNft}/> : 
-            <NftCarousel nfts={nfts} account={account} descriptionHandler={setCurrentNft}/> 
+            <NftDescription currentNft={currentNft} descriptionHandler={setCurrentNft}/> :
+            <NftCarousel nfts={nfts} account={account} descriptionHandler={setCurrentNft}/>
           }
         </Row>
-        <Row style={{marginTop: '1rem'}} className="justify-content-md-center">
-          {account ? 
-            <MintForm 
-              descriptionHandler={setCurrentNft}
-              currentNft={currentNft}
-              nftContract={nftContract} 
-              nfts={nfts} 
-              setNfts={setNfts} 
-              currentFee={currentFee} 
-              account={account}/> : connectWalletButton()}
-        </Row>
+        {showSecondRowComponent()}
       </Container>
 
     </div>
