@@ -1,4 +1,5 @@
 import nftContractJSON from '../abis/Days365.json';
+import auctionerContractJSON from '../abis/Auctioner.json';
 import { ethers } from 'ethers';
 import axios from 'axios';
 
@@ -59,9 +60,15 @@ const getNftContract = (ethereum) => {
     const provider = new ethers.providers.Web3Provider(ethereum);
     const signer = provider.getSigner();
     return new ethers.Contract(process.env.REACT_APP_CONTRACT_ADDRESS, nftContractJSON.abi, signer);
-  }
+}
 
-const connectToContract = async (userConnect, setAccount, setContract, setFee, nfts, setNfts) => {
+const getAuctionerContract = (ethereum) => {
+    const provider = new ethers.providers.Web3Provider(ethereum);
+    const signer = provider.getSigner();
+    return new ethers.Contract(process.env.REACT_APP_AUCTIONER_ADDRESS, auctionerContractJSON.abi, signer);
+}
+
+const connect = async ({userConnect, setAccount, setNftContract, setCurrentFee, nfts, setNfts, setAuctioner}) => {
     const { ethereum } = window;
 
     if(!ethereum){
@@ -86,8 +93,12 @@ const connectToContract = async (userConnect, setAccount, setContract, setFee, n
           console.log("Connecting authorized account: "  + accounts[0]);
           setAccount(accounts[0]);
           const contract = getNftContract(ethereum);
-          setContract(contract);
-          await checkMintingFee(contract, setFee);
+          setNftContract(contract);
+          // set Auctioner
+          const auctioner = getAuctionerContract(ethereum);
+          console.log(auctioner);
+          setAuctioner(auctioner);
+          await checkMintingFee(contract, setCurrentFee);
           await getNFTs(contract, nfts, setNfts);
         }
         else {
@@ -99,4 +110,4 @@ const connectToContract = async (userConnect, setAccount, setContract, setFee, n
     }
 };
 
-export default connectToContract;
+export default connect;

@@ -4,9 +4,13 @@ const shortHash = (hash) => {
     return hash ? hash.slice(0, 5) + "..." + hash.slice(hash.length-4, hash.length) : "None";
 }
 
-const getOwner = (nft, account) =>{
-    if(nft.owner.toLowerCase() === account.toLowerCase()) return "You";
-    else return shortHash(nft.owner);
+const getOwner = (nft, account, showFull) =>{
+    if(nft.owner.toLowerCase() === account.toLowerCase())
+        return "You";
+    else if(showFull)
+        return nft.owner;
+    else
+        return shortHash(nft.owner);
 }
 
 const previewImage = (e, setPreview, setFile) => {

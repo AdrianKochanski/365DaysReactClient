@@ -5,18 +5,27 @@ import ipfs from '../services/ipfs';
 import { getBuffer, getBufferFromJson, getIpfsLink, previewImage } from '../services/helpers';
 
 
-const mintForm = ({nftContract, nfts, setNfts, currentFee, account, currentNft, descriptionHandler}) => {
-    const formRef = useRef(null);
+const mintForm = ({nftContract, nfts, setNfts, currentFee, account, currentNft, descriptionHandler, auctioner}) => {
+    const daysFormRef = useRef(null);
+    const auctionFormRef = useRef(null);
 
-    const [loading, setLoading] = useState(false);
+    const [mintLoading, setMintLoading] = useState(false);
     const [previewImg, setPreview] = useState('placeholder-image.png');
     const [file, setFile] = useState(null);
+    const [auctionLoading, setAuctionLoading] = useState(false);
+
+    const auctionHandler = (e) => {
+      e.preventDefault();
+      setAuctionLoading(true);
+      console.log(auctionFormRef);
+      console.log(auctioner);
+    }
 
     const clearForm = () => {
-      formRef.current[0].value = null;
-      formRef.current[1].value = "";
-      formRef.current[2].value = 0;
-      formRef.current[3].value = "";
+      daysFormRef.current[0].value = null;
+      daysFormRef.current[1].value = "";
+      daysFormRef.current[2].value = 0;
+      daysFormRef.current[3].value = "";
       setPreview('placeholder-image.png');
       setFile(null);
     }
@@ -24,9 +33,9 @@ const mintForm = ({nftContract, nfts, setNfts, currentFee, account, currentNft, 
     const setDataOnForm = () => {
       if(currentNft){
         setPreview(currentNft.image);
-        formRef.current[1].value = currentNft.description;
-        formRef.current[2].value = currentNft.temperature;
-        formRef.current[3].value = currentNft.location;
+        daysFormRef.current[1].value = currentNft.description;
+        daysFormRef.current[2].value = currentNft.temperature;
+        daysFormRef.current[3].value = currentNft.location;
       }
     }
 
@@ -97,9 +106,9 @@ const mintForm = ({nftContract, nfts, setNfts, currentFee, account, currentNft, 
         name = d.getDate()  + "." + (d.getMonth()+1) + "." + d.getFullYear();
       }
 
-      const description = formRef.current[1].value;
-      const temperature = formRef.current[2].value;
-      const location = formRef.current[3].value;
+      const description = daysFormRef.current[1].value;
+      const temperature = daysFormRef.current[2].value;
+      const location = daysFormRef.current[3].value;
 
       const metadata = getMetadata(name, description, image, location, temperature);
       const jsonBuffer = await getBufferFromJson(metadata);
@@ -123,10 +132,10 @@ const mintForm = ({nftContract, nfts, setNfts, currentFee, account, currentNft, 
 
     const mintHandler = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        setMintLoading(true);
 
         const nft = await handleTokenMetadata();
-        const eventFilter = null;
+        let eventFilter = null;
 
         if(currentNft) {
           eventFilter = nftContract.filters.UriChange(nft.tokenId, account);
@@ -139,26 +148,26 @@ const mintForm = ({nftContract, nfts, setNfts, currentFee, account, currentNft, 
           nftContract.provider.on(eventFilter, (log, event) => {
             updateNftList(nft);
             descriptionHandler(0);
-            setLoading(false);
+            setMintLoading(false);
             clearForm();
           });
         }
     }
 
     const getButtonDescription = () => {
-      switch(!!loading) {
+      switch(!!mintLoading) {
         case true:
           switch(!!currentNft) {
             case true:
               return 'Updating...';
-            case false:
+            default:
               return 'Minting...';
           }
-        case false:
+        default:
           switch(!!currentNft) {
             case true:
               return 'Update URI';
-            case false:
+            default:
               return 'Mint DAY NFT';
           }
       }
@@ -169,61 +178,96 @@ const mintForm = ({nftContract, nfts, setNfts, currentFee, account, currentNft, 
     }, [currentNft]);
 
     return  (
-      <Form ref={formRef}>
-        <Container fluid="md">
-          <Row className="justify-content-md-center">
-            <Col style={{width: '20rem'}} md="auto">
-              <Card style={{ width: '18rem' }}>
-                <Card.Img id='previewImg' style={{ height: '12rem' }} variant="top" src={previewImg} />
-                <Card.Body>
-                  <Form.Group className="mb-3" controlId="image">
-                    <Form.File 
-                      onChange={(e) => {previewImage(e, setPreview, setFile)}} 
-                      accept='image/png, image/jpeg' 
-                      type="file"
-                      label="NFT Image"/>
-                  </Form.Group>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col style={{width: '20rem'}} md="auto">
-              <Form.Group className="mb-3" controlId="description">
-                <Form.Label>Description</Form.Label>
-                <Form.Control type="text" placeholder="Description" />
-              </Form.Group>
+      <Container fluid="md">
+        <Row className="justify-content-md-center" style={{ height: '20rem' }}>
+          <Col md="auto">
+            <Form ref={daysFormRef}>
+              <Container fluid="md">
+                <Row className="justify-content-md-center">
+                  <Col style={{width: '20rem'}} md="auto">
+                    <Card style={{ width: '18rem' }}>
+                      <Card.Img id='previewImg' style={{ height: '12rem' }} variant="top" src={previewImg} />
+                      <Card.Body>
+                        <Form.Group className="mb-3" controlId="image">
+                          <Form.File 
+                            onChange={(e) => {previewImage(e, setPreview, setFile)}} 
+                            accept='image/png, image/jpeg' 
+                            type="file"
+                            label="NFT Image"/>
+                        </Form.Group>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                  <Col style={!currentNft ? {width: '20rem'} : {}} md="auto">
+                    <Form.Group className="mb-3" controlId="description">
+                      <Form.Label>Description</Form.Label>
+                      <Form.Control type="text" placeholder="Description" />
+                    </Form.Group>
 
-              <Form.Group className="mb-3" controlId="temperature">
-                <Form.Label>Temperature</Form.Label>
-                <Form.Control type="number" placeholder="Temperature" />
-              </Form.Group>
+                    <Form.Group className="mb-3" controlId="temperature">
+                      <Form.Label>Temperature</Form.Label>
+                      <Form.Control type="number" placeholder="Temperature" />
+                    </Form.Group>
 
-              <Form.Group className="mb-3" controlId="location">
-                <Form.Label>Location coordinates</Form.Label>
-                <Form.Control type="text" label="Location coordinates" />
-              </Form.Group>
+                    <Form.Group className="mb-3" controlId="location">
+                      <Form.Label>Location coordinates</Form.Label>
+                      <Form.Control type="text" label="Location coordinates" />
+                    </Form.Group>
 
-              <Form.Group className="mb-3" controlId="location">
-                <Button 
-                  disabled={loading}
-                  onClick={mintHandler} 
+                    <Button 
+                      disabled={mintLoading}
+                      onClick={mintHandler} 
+                      variant="primary" 
+                      type="submit">
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                          hidden={!mintLoading}
+                        />
+                        {getButtonDescription()}
+                    </Button>
+                    <div>{"Current Fee: " + currentFee + " ETH"}</div>
+                  </Col>
+                </Row>
+              </Container>
+            </Form>
+          </Col>
+          <Col md="auto" hidden={!currentNft}>
+            <Form ref={auctionFormRef}>
+              <div>
+                <Form.Group className="mb-3" controlId="price">
+                    <Form.Label>Start Price ETH</Form.Label>
+                    <Form.Control type="number" placeholder="Start Price" />
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="endDays">
+                    <Form.Label>Days End</Form.Label>
+                    <Form.Control type="number" placeholder="Days End" />
+                </Form.Group>
+              </div>
+
+              <Button 
+                  disabled={auctionLoading}
+                  onClick={auctionHandler}
                   variant="primary" 
                   type="submit">
-                    <Spinner
+                  <Spinner
                       as="span"
                       animation="border"
                       size="sm"
                       role="status"
                       aria-hidden="true"
-                      hidden={!loading}
-                    />
-                    {getButtonDescription()}
-                </Button>
-                <div>{"Current Fee: " + currentFee + " ETH"}</div>
-              </Form.Group>
-            </Col>
-          </Row>
-        </Container>
-      </Form>
+                      hidden={!auctionLoading}
+                  />
+                  Start Auction
+              </Button>
+          </Form>
+          </Col>
+        </Row>
+      </Container>
     )
 }
 

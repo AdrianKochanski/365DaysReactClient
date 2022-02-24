@@ -13,7 +13,7 @@ function NftCarousel({nfts, account, descriptionHandler}) {
                       <Image
                           className="d-block"
                           src={nft.image ? nft.image : "placeholder-image.png"}
-                          alt={"Owned by: " + getOwner(nft, account)}
+                          alt={"Owned by: " + getOwner(nft, account, false)}
                           style={{width: '46rem', height: '28rem', objectFit: 'cover'}}
                       />
                       <Carousel.Caption>
@@ -23,7 +23,7 @@ function NftCarousel({nfts, account, descriptionHandler}) {
                             type="button">
                             {nft.name ? nft.name : "Set metadata..."}
                         </Button>
-                        <p>{"Owner: " + getOwner(nft, account) + " " + nft.description}</p>
+                        <p>{"Owner: " + getOwner(nft, account, false) + " " + nft.description}</p>
                       </Carousel.Caption>
                   </Carousel.Item>
                 );

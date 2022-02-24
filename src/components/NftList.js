@@ -13,7 +13,7 @@ function NftList({nfts, account}) {
                 <Card.Img style={{ height: '12rem' }} variant="top" src={nft.image ? nft.image : "placeholder-image.png"} />
                 <Card.Body>
                   <Card.Title>{nft.name ? nft.name : "Metadata does not exist..."}</Card.Title>
-                  <Card.Subtitle className="mb-2 text-muted">{"Owned by: " + getOwner(nft, account)}</Card.Subtitle>
+                  <Card.Subtitle className="mb-2 text-muted">{"Owned by: " + getOwner(nft, account, false)}</Card.Subtitle>
                   <Card.Text>
                     {nft.description ? nft.description : "(...)"}
                   </Card.Text>
