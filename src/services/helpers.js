@@ -1,7 +1,8 @@
-
+import { ethers } from 'ethers';
 
 const shortHash = (hash) => {
-    return hash ? hash.slice(0, 5) + "..." + hash.slice(hash.length-4, hash.length) : "None";
+    if(ethers.constants.AddressZero === hash) return 'None';
+    else return hash ? hash.slice(0, 5) + "..." + hash.slice(hash.length-4, hash.length) : "None";
 }
 
 const getOwner = (nft, account, showFull) =>{
@@ -11,6 +12,12 @@ const getOwner = (nft, account, showFull) =>{
         return nft.owner;
     else
         return shortHash(nft.owner);
+}
+
+const getDateFromMiliseconds = (miliseconds) =>{
+    const date = new Date(miliseconds);
+    const monthString = '0' + (date.getMonth()+1).toString();
+    return date.getDate() + '.' + monthString.substring(monthString.length-2) + '.' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getMinutes();
 }
 
 const previewImage = (e, setPreview, setFile) => {
@@ -56,5 +63,6 @@ export {
     getIpfsLink,
     getBuffer,
     getBufferFromJson,
-    previewImage
+    previewImage,
+    getDateFromMiliseconds
 };

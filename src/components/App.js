@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import { Container, Row, Navbar, Nav, Button } from 'react-bootstrap';
 import Footer from './Footer';
+import { ethers } from 'ethers';
 
 import NftCarousel from './NftCarousel';
 import NftDescription from './NftDescription';
@@ -16,6 +17,7 @@ function App() {
   const [auctioner, setAuctioner] = useState(null);
   const [nfts, setNfts] = useState([]);
   const [currentNft, setCurrentNft] = useState(null);
+  const [auction, setAuction] = useState(null);
 
   useEffect(() => {
     connect({
@@ -28,6 +30,24 @@ function App() {
       setAuctioner
     });
   }, []);
+
+  const getAuction = async (nft) => {
+    const auction = await auctioner.getAuction(nft.id);
+    const formatAuction = {
+        owner: auction[0].toLowerCase(),
+        timestamp: auction[1].toNumber(),
+        price: ethers.utils.formatEther(auction[2]),
+        winner: auction[3],
+        isStarted: auction[1].toNumber() !== 0,
+        isEnded: auction[1].toNumber() !== 0 && (new Date(auction[1].toNumber()*1000)) < (new Date()),
+        isOwner: auction[0].toLowerCase() === account.toLowerCase()
+    };
+
+    console.log(formatAuction);
+
+    setAuction(formatAuction);
+    setCurrentNft(nft);
+}
 
   const showSecondRowComponent = () => {
     let component = null;
@@ -48,6 +68,7 @@ function App() {
           currentFee={currentFee}
           account={account}
           auctioner={auctioner}
+          getAuction={getAuction}
         />
       }
     }
@@ -55,7 +76,7 @@ function App() {
     {
       component = <Button onClick={
         () => { connect({
-          userConnect: false, 
+          userConnect: true, 
           setAccount, 
           setNftContract, 
           setCurrentFee, 
@@ -92,8 +113,15 @@ function App() {
           <Row style={{marginTop: '1rem', width: '100%'}} className="justify-content-md-center">
             {
               currentNft ? 
-              <NftDescription currentNft={currentNft} descriptionHandler={setCurrentNft} account={account}/> :
-              <NftCarousel nfts={nfts} account={account} descriptionHandler={setCurrentNft}/>
+              <NftDescription 
+                currentNft={currentNft} 
+                descriptionHandler={setCurrentNft} 
+                account={account}
+                auction={auction}/> :
+              <NftCarousel 
+                nfts={nfts} 
+                account={account} 
+                getAuction={getAuction}/>
             }
           </Row>
           {showSecondRowComponent()}

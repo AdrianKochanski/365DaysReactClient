@@ -1,45 +1,48 @@
-import React  from 'react';
+import React , { useEffect } from 'react';
 import { Table, Button, Container, Row, Image } from 'react-bootstrap';
-import {getOwner} from '../services/helpers';
+import {getOwner, shortHash, getDateFromMiliseconds} from '../services/helpers';
 
-function NftDescription({currentNft, descriptionHandler, account}) {
+function NftDescription({currentNft, descriptionHandler, account, auction}) {
 
-    return (<Table style={{width: '46rem'}} striped bordered hover variant="dark">
+
+    return (<Table style={{width: '46rem'}} striped bordered variant="dark">
         <thead>
             <tr>
                 <th>
-                    <Container style={{height: '17rem', display: 'flex', flexFlow: 'column nowrap', justifyContent: 'space-between', alignItems: 'center'}}>
-                        <Row className="justify-content-md-center">
-                            <span style={{marginRight: '5px'}}>Id:</span>
-                            <span>{currentNft.id}</span>
-                        </Row>
-                        <Row className="justify-content-md-center">
-                            <span style={{marginRight: '5px'}}>Date:</span>
-                            <span>{"#" + currentNft.name}</span>
-                        </Row>
-                        <Row className="justify-content-md-center">
-                            <span style={{marginRight: '5px'}}>Temperature:</span>
-                            <span>{currentNft.temperature + " °C"}</span>
-                        </Row>
-                        <Row className="justify-content-md-center">
-                            <span style={{marginRight: '5px'}}>Price:</span>
-                            <span>{10 + ' ETH'}</span>
-                        </Row>
-                        <Row className="justify-content-md-center">
-                            <Button 
-                                onClick={() => {descriptionHandler(null)}} 
-                                variant="primary" 
-                                type="button">
-                                Back
-                            </Button>
-                        </Row>
-                    </Container>
+                    <Table variant="dark" style={{marginBottom: '0px'}}>
+                        <thead>
+                            <tr>
+                                <th> {'Id: ' + currentNft.id} </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{"#" + currentNft.name}</td>
+                            </tr>
+                            <tr>
+                                <td>{currentNft.temperature + " °C"}</td>
+                            </tr>
+                            <tr>
+                                <td>{auction.price != 0 ? auction.price + ' ETH' : 'No price history'}</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <Button 
+                                    onClick={() => {descriptionHandler(null)}} 
+                                    variant="primary" 
+                                    type="button">
+                                    Back
+                                    </Button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </Table>
                 </th>
                 <th>
                     <Container >
                         <Row className="justify-content-md-center">
                             <Image 
-                                style={{width: '30rem', height: '17rem', objectFit: 'cover'}}
+                                style={{width: '28rem', height: '16rem', objectFit: 'cover'}}
                                 src={currentNft.image}
                             />
                         </Row>
@@ -68,16 +71,39 @@ function NftDescription({currentNft, descriptionHandler, account}) {
                 <td>Location Coordinates</td>
                 <td>{currentNft.location}</td>
             </tr>
+            <tr hidden={!(auction.isStarted && !auction.isEnded)}>
+                <td>Auction</td>
+                <td>
+                    <Table variant="dark" style={{marginBottom: '0px'}}>
+                        <tbody>
+                            <tr>
+                                <td>Current Price:</td>
+                                <td>{ auction.price + ' ETH'}</td>
+                            </tr>
+                            <tr>
+                                <td>Current Winner:</td>
+                                <td>{ shortHash(auction.winner) }</td>
+                            </tr>
+                            <tr>
+                                <td>Time End:</td>
+                                <td>{ getDateFromMiliseconds(auction.timestamp*1000) }</td>
+                            </tr>
+                        </tbody>
+                    </Table>
+                </td>
+            </tr>
             <tr>
                 <td>Interactions</td>
                 <td>
                     <Button 
+                        hidden={!(auction.isStarted && !auction.isEnded)}
                         style={{marginRight: '7px'}}
                         variant="success" 
                         type="button">
                         BID(amount)
                     </Button>
                     <Button 
+                        hidden={!(auction.isStarted && auction.isEnded)}
                         style={{marginRight: '7px'}}
                         variant="warning" 
                         type="button">
@@ -90,6 +116,7 @@ function NftDescription({currentNft, descriptionHandler, account}) {
                         WITHDRAW(amount)
                     </Button>
                     <Button 
+                        hidden={!(auction.isOwner && auction.isStarted && !auction.isEnded)}
                         variant="danger" 
                         type="button">
                         CANCEL

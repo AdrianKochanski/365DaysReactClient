@@ -5,7 +5,7 @@ import ipfs from '../services/ipfs';
 import { getBuffer, getBufferFromJson, getIpfsLink, previewImage } from '../services/helpers';
 
 
-const mintForm = ({nftContract, nfts, setNfts, currentFee, account, currentNft, descriptionHandler, auctioner}) => {
+const mintForm = ({nftContract, nfts, setNfts, currentFee, account, currentNft, descriptionHandler, auctioner, getAuction}) => {
     const daysFormRef = useRef(null);
     const auctionFormRef = useRef(null);
 
@@ -14,11 +14,31 @@ const mintForm = ({nftContract, nfts, setNfts, currentFee, account, currentNft, 
     const [file, setFile] = useState(null);
     const [auctionLoading, setAuctionLoading] = useState(false);
 
-    const auctionHandler = (e) => {
+    const getAuctionFormData = () => {
+      const startPrice = auctionFormRef.current[0].value;
+      const daysEnd = auctionFormRef.current[1].value;
+      return {startPrice, daysEnd};
+    }
+
+    const auctionHandler = async (e) => {
       e.preventDefault();
       setAuctionLoading(true);
-      console.log(auctionFormRef);
-      console.log(auctioner);
+
+      const auctionFormData = getAuctionFormData();
+      await nftContract.approve(auctioner.address, currentNft.id);
+      let eventFilter = nftContract.filters.Approval(account, auctioner.address, currentNft.id);
+
+      nftContract.provider.on(eventFilter, async (log, event) => {
+        await auctioner.start(currentNft.id, ethers.utils.parseEther(auctionFormData.startPrice), auctionFormData.daysEnd);
+        clearAuctionForm()
+        getAuction(currentNft);
+        setAuctionLoading(false);
+      });
+    }
+
+    const clearAuctionForm = () => {
+      auctionFormRef.current[0].value = null;
+      auctionFormRef.current[1].value = null;
     }
 
     const clearForm = () => {

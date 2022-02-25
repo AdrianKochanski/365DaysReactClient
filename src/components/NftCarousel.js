@@ -2,7 +2,8 @@ import React from 'react';
 import { Carousel, Button, Image } from 'react-bootstrap';
 import { getOwner } from '../services/helpers';
 
-function NftCarousel({nfts, account, descriptionHandler}) {
+function NftCarousel({nfts, account, getAuction}) {
+    
     const getItems = () => {
         const cards = [];
     
@@ -18,7 +19,7 @@ function NftCarousel({nfts, account, descriptionHandler}) {
                       />
                       <Carousel.Caption>
                         <Button 
-                            onClick={() => {descriptionHandler(nft)}} 
+                            onClick={() => {getAuction(nft)}} 
                             variant="primary" 
                             type="button">
                             {nft.name ? nft.name : "Set metadata..."}
