@@ -1,9 +1,10 @@
-import React from 'react';
-import { Carousel, Button, Image } from 'react-bootstrap';
+import React, {useState} from 'react';
+import { Carousel, Button, Image, Spinner } from 'react-bootstrap';
 import { getOwner } from '../services/helpers';
 
 function NftCarousel({nfts, account, getAuction}) {
-    
+    const [descriptionLoading, setDescriptionLoading] = useState(false);
+
     const getItems = () => {
         const cards = [];
     
@@ -19,9 +20,23 @@ function NftCarousel({nfts, account, getAuction}) {
                       />
                       <Carousel.Caption>
                         <Button 
-                            onClick={() => {getAuction(nft)}} 
+                            disabled={descriptionLoading}
+                            onClick={() => {
+                                setDescriptionLoading(true);
+                                getAuction(nft, () => {
+                                    setDescriptionLoading(false);
+                                })}
+                            } 
                             variant="primary" 
                             type="button">
+                            <Spinner
+                                hidden={!descriptionLoading}
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                            />
                             {nft.name ? nft.name : "Set metadata..."}
                         </Button>
                         <p>{"Owner: " + getOwner(nft, account, false) + " " + nft.description}</p>

@@ -26,13 +26,19 @@ const mintForm = ({nftContract, nfts, setNfts, currentFee, account, currentNft, 
 
       const auctionFormData = getAuctionFormData();
       await nftContract.approve(auctioner.address, currentNft.id);
-      let eventFilter = nftContract.filters.Approval(account, auctioner.address, currentNft.id);
-
-      nftContract.provider.on(eventFilter, async (log, event) => {
+      let approvalEvent = nftContract.filters.Approval(account, auctioner.address, currentNft.id);
+      let auctionStartEvent = auctioner.filters.Start(currentNft.id, null, null);
+      
+      nftContract.provider.on(approvalEvent, async (log, event) => {
         await auctioner.start(currentNft.id, ethers.utils.parseEther(auctionFormData.startPrice), auctionFormData.daysEnd);
-        clearAuctionForm()
-        getAuction(currentNft);
+      });
+
+      auctioner.provider.on(auctionStartEvent, async (log, event) => {
+        clearAuctionForm();
+        await getAuction(currentNft);
         setAuctionLoading(false);
+        nfts[currentNft.id-1].owner = process.env.REACT_APP_AUCTIONER_ADDRESS.toLowerCase();
+        setNfts([...nfts]);
       });
     }
 

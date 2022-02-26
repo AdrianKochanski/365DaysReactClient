@@ -31,23 +31,28 @@ function App() {
     });
   }, []);
 
-  const getAuction = async (nft) => {
+  const getAuction = async (nft, callback) => {
     const auction = await auctioner.getAuction(nft.id);
+    const bid = await auctioner.getBid(nft.id);
+
     const formatAuction = {
         owner: auction[0].toLowerCase(),
         timestamp: auction[1].toNumber(),
         price: ethers.utils.formatEther(auction[2]),
-        winner: auction[3],
+        winner: auction[3].toLowerCase(),
+        isWinner: auction[3].toLowerCase() === account.toLowerCase(),
         isStarted: auction[1].toNumber() !== 0,
         isEnded: auction[1].toNumber() !== 0 && (new Date(auction[1].toNumber()*1000)) < (new Date()),
-        isOwner: auction[0].toLowerCase() === account.toLowerCase()
+        isOwner: auction[0].toLowerCase() === account.toLowerCase(),
+        totalBid: ethers.utils.formatEther(bid)
     };
 
     console.log(formatAuction);
 
     setAuction(formatAuction);
     setCurrentNft(nft);
-}
+    if(callback) callback();
+  }
 
   const showSecondRowComponent = () => {
     let component = null;
@@ -117,6 +122,8 @@ function App() {
                 currentNft={currentNft} 
                 descriptionHandler={setCurrentNft} 
                 account={account}
+                auctioner={auctioner}
+                getAuction={getAuction}
                 auction={auction}/> :
               <NftCarousel 
                 nfts={nfts} 

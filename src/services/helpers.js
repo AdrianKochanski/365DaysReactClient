@@ -8,6 +8,8 @@ const shortHash = (hash) => {
 const getOwner = (nft, account, showFull) =>{
     if(nft.owner.toLowerCase() === account.toLowerCase())
         return "You";
+    else if(nft.owner.toLowerCase() === process.env.REACT_APP_AUCTIONER_ADDRESS.toLowerCase())
+        return "On Auction";
     else if(showFull)
         return nft.owner;
     else
