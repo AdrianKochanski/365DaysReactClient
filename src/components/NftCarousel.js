@@ -5,6 +5,17 @@ import { getOwner } from '../services/helpers';
 function NftCarousel({nfts, account, getAuction}) {
     const [descriptionLoading, setDescriptionLoading] = useState(false);
 
+    const getAuctionHandler = async (nft) => {
+        setDescriptionLoading(true);
+        try {
+            await getAuction(nft, () => {
+                setDescriptionLoading(false);
+            });
+        } catch {
+            setDescriptionLoading(false);
+        }
+    }
+
     const getItems = () => {
         const cards = [];
     
@@ -21,12 +32,7 @@ function NftCarousel({nfts, account, getAuction}) {
                       <Carousel.Caption>
                         <Button 
                             disabled={descriptionLoading}
-                            onClick={() => {
-                                setDescriptionLoading(true);
-                                getAuction(nft, () => {
-                                    setDescriptionLoading(false);
-                                })}
-                            } 
+                            onClick={() => {getAuctionHandler(nft)}} 
                             variant="primary" 
                             type="button">
                             <Spinner

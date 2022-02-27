@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import { Container, Row, Navbar, Nav, Button } from 'react-bootstrap';
+import { Container, Row, Navbar, Nav } from 'react-bootstrap';
 import Footer from './Footer';
 import { ethers } from 'ethers';
 
@@ -8,7 +8,7 @@ import NftCarousel from './NftCarousel';
 import NftDescription from './NftDescription';
 import { shortHash } from '../services/helpers';
 import connect from '../services/contractsConnector';
-import MintForm from './Day365Mint';
+import ContractForms from './ContractForms';
 
 function App() {
   const [account, setAccount] = useState(null);
@@ -54,52 +54,6 @@ function App() {
     if(callback) callback();
   }
 
-  const showSecondRowComponent = () => {
-    let component = null;
-
-    if(account) 
-    {
-      if(!!currentNft && account.toLowerCase() !== currentNft.owner.toLowerCase()) {
-        component = null;
-      }
-      else
-      {
-        component = <MintForm 
-          descriptionHandler={setCurrentNft}
-          currentNft={currentNft}
-          nftContract={nftContract}
-          nfts={nfts}
-          setNfts={setNfts}
-          currentFee={currentFee}
-          account={account}
-          auctioner={auctioner}
-          getAuction={getAuction}
-        />
-      }
-    }
-    else 
-    {
-      component = <Button onClick={
-        () => { connect({
-          userConnect: true, 
-          setAccount, 
-          setNftContract, 
-          setCurrentFee, 
-          nfts, 
-          setNfts, 
-          setAuctioner
-        }); }
-      } variant="info">Connect Wallet</Button>
-    }
-
-    if(component != null) {
-      return (<Row style={{marginTop: '1rem', width: '100%'}} className="justify-content-md-center">
-          {component}
-        </Row>
-      );
-    }
-  }
-
   return (
     <div>
       <div style={{minHeight: '100vh'}}>
@@ -131,7 +85,27 @@ function App() {
                 getAuction={getAuction}/>
             }
           </Row>
-          {showSecondRowComponent()}
+          <Row 
+            hidden={!!currentNft && account.toLowerCase() !== currentNft.owner.toLowerCase()}
+            style={{marginTop: '1rem', width: '100%'}} 
+            className="justify-content-md-center">
+            <ContractForms 
+              connect={connect}
+              setAccount={setAccount}
+              setNftContract={setNftContract}
+              setCurrentFee={setCurrentFee}
+              setAuctioner={setAuctioner}
+              descriptionHandler={setCurrentNft}
+              currentNft={currentNft}
+              nftContract={nftContract}
+              nfts={nfts}
+              setNfts={setNfts}
+              currentFee={currentFee}
+              account={account}
+              auctioner={auctioner}
+              getAuction={getAuction}
+            />
+          </Row>
         </Container>
       </div>
 

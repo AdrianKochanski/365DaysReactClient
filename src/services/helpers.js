@@ -16,6 +16,17 @@ const getOwner = (nft, account, showFull) =>{
         return shortHash(nft.owner);
 }
 
+const checkWalletAddress = (wallet, user, showFull) =>{
+    if(wallet.toLowerCase() === user.toLowerCase())
+        return "You";
+    else if(wallet.toLowerCase() === process.env.REACT_APP_AUCTIONER_ADDRESS.toLowerCase())
+        return "Auction";
+    else if(showFull)
+        return wallet.toLowerCase();
+    else
+        return shortHash(wallet.toLowerCase());
+}
+
 const getDateFromMiliseconds = (miliseconds) =>{
     const date = new Date(miliseconds);
     const monthString = '0' + (date.getMonth()+1).toString();
@@ -66,5 +77,6 @@ export {
     getBuffer,
     getBufferFromJson,
     previewImage,
-    getDateFromMiliseconds
+    getDateFromMiliseconds,
+    checkWalletAddress
 };
