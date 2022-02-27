@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import { Carousel, Button, Image, Spinner } from 'react-bootstrap';
 import { getOwner } from '../services/helpers';
 
-function NftCarousel({nfts, account, getAuction}) {
+function NftCarousel({nfts, account, getAuction, activeIndex, onSelect}) {
     const [descriptionLoading, setDescriptionLoading] = useState(false);
 
     const getAuctionHandler = async (nft) => {
@@ -72,7 +72,7 @@ function NftCarousel({nfts, account, getAuction}) {
     };
 
     return (
-        <Carousel style={{background: 'gray'}}>
+        <Carousel activeIndex={activeIndex} onSelect={onSelect} style={{background: 'gray'}}>
             {getItems()}
         </Carousel>
     );

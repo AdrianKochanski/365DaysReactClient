@@ -14,7 +14,8 @@ const days365Form = ({nftContract, nfts, setNfts, currentFee, account, currentNf
 
 
     const clearMintingForm = () => {
-      if(daysFormRef) {
+      if(daysFormRef) 
+      {
         daysFormRef.current[0].value = null;
         daysFormRef.current[1].value = "";
         daysFormRef.current[2].value = 0;
@@ -25,11 +26,16 @@ const days365Form = ({nftContract, nfts, setNfts, currentFee, account, currentNf
     }
 
     const setDataOnForm = () => {
-      if(currentNft && daysFormRef){
+      if(currentNft && daysFormRef)
+      {
         setPreview(currentNft.image);
         daysFormRef.current[1].value = currentNft.description;
         daysFormRef.current[2].value = currentNft.temperature;
         daysFormRef.current[3].value = currentNft.location;
+      } 
+      else 
+      {
+        clearMintingForm();
       }
     }
 

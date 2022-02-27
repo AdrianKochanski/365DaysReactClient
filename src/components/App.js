@@ -18,6 +18,19 @@ function App() {
   const [nfts, setNfts] = useState([]);
   const [currentNft, setCurrentNft] = useState(null);
   const [auction, setAuction] = useState(null);
+  const [nftView, setActiveNftView] = useState(0);
+
+  const nftViewHandler = (idx, e) => {
+    if(currentNft) 
+    {
+      setActiveNftView(currentNft.id-1);
+      setCurrentNft(null);
+    }
+    else 
+    {
+      setActiveNftView(idx);
+    }
+  };
 
   useEffect(() => {
     connect({
@@ -74,12 +87,14 @@ function App() {
               currentNft ? 
               <NftDescription 
                 currentNft={currentNft} 
-                descriptionHandler={setCurrentNft} 
+                nftViewHandler={nftViewHandler} 
                 account={account}
                 auctioner={auctioner}
                 getAuction={getAuction}
                 auction={auction}/> :
               <NftCarousel 
+                activeIndex={nftView} 
+                onSelect={nftViewHandler}
                 nfts={nfts} 
                 account={account} 
                 getAuction={getAuction}/>

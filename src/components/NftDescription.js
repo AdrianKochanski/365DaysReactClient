@@ -3,7 +3,7 @@ import { Table, Button, Container, Row, Image, Form, Spinner } from 'react-boots
 import {getOwner, checkWalletAddress, getDateFromMiliseconds} from '../services/helpers';
 import { ethers } from 'ethers';
 
-function NftDescription({currentNft, descriptionHandler, account, auctioner, auction, getAuction}) {
+function NftDescription({currentNft, nftViewHandler, account, auctioner, auction, getAuction}) {
 
     const bidFormRef = useRef(null);
     const [bidLoading, setBidLoading] = useState(false);
@@ -77,6 +77,10 @@ function NftDescription({currentNft, descriptionHandler, account, auctioner, auc
         }
     }
 
+    const backHandler = (e) => {
+        nftViewHandler(currentNft.id-1, e);
+    }
+
     return (<Table style={{width: '46rem'}} striped bordered variant="dark">
         <thead>
             <tr>
@@ -100,7 +104,7 @@ function NftDescription({currentNft, descriptionHandler, account, auctioner, auc
                             <tr>
                                 <td>
                                     <Button 
-                                    onClick={() => {descriptionHandler(null)}} 
+                                    onClick={backHandler}
                                     variant="primary" 
                                     type="button">
                                     Back
