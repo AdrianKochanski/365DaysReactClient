@@ -152,8 +152,12 @@ function NftDescription({currentNft, nftViewHandler, account, auctioner, auction
                 <td>
                     <Table variant="dark" style={{marginBottom: '0px'}}>
                         <tbody>
-                        <tr>
-                            <td>Seller:</td>
+                            <tr>
+                                <td>Status:</td>
+                                <td>{ auction.isStarted && !auction.isEnded ? "Pending" : "Ended" }</td>
+                            </tr>
+                            <tr>
+                                <td>Seller:</td>
                                 <td>{ checkWalletAddress(auction.owner, account, false) }</td>
                             </tr>
                             <tr>

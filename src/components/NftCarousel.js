@@ -43,7 +43,7 @@ function NftCarousel({nfts, account, getAuction, activeIndex, onSelect}) {
                                 role="status"
                                 aria-hidden="true"
                             />
-                            {nft.name ? nft.name : "Set metadata..."}
+                            {nft.uri && nft.name ? nft.name : nft.uri ? "Details" : "Set metadata..."}
                         </Button>
                         <p>{"Owner: " + getOwner(nft, account, false) + " " + nft.description}</p>
                       </Carousel.Caption>
@@ -54,7 +54,7 @@ function NftCarousel({nfts, account, getAuction, activeIndex, onSelect}) {
         else {
             cards.push(
                 <Carousel.Item>
-                    <img
+                    <Image
                         className="d-block"
                         src="placeholder-image.png"
                         alt={"No Owner..."}
@@ -72,7 +72,7 @@ function NftCarousel({nfts, account, getAuction, activeIndex, onSelect}) {
     };
 
     return (
-        <Carousel activeIndex={activeIndex} onSelect={onSelect} style={{background: 'gray'}}>
+        <Carousel activeIndex={activeIndex} onSelect={onSelect} style={{maxWidth: '46rem', background: 'gray'}}>
             {getItems()}
         </Carousel>
     );

@@ -4,39 +4,37 @@ function Footer(props) {
     return(
     <footer className="text-center text-lg-start bg-dark text-muted" {...props}>
         <section
-          className="d-flex justify-content-center justify-content-lg-between p-4 border-bottom"
+          className="d-flex justify-content-center justify-content-lg-between border-bottom"
+          style={{padding: '1rem'}}
         >
           <div className="me-5 d-none d-lg-block">
             <span>Check my social networks:</span>
           </div>
 
           <div>
-            <a href="" className="me-4 text-reset">
-              <i className="fab fa-facebook-f"></i>
+            <a href="https://www.facebook.com/adrian.kochanski.77" className="me-4 text-reset" style={{marginRight: '0.5rem', textDecoration: 'none'}}>
+              <i className="icon-facebook-sign"></i>
             </a>
-            <a href="" className="me-4 text-reset">
-              <i className="fab fa-twitter"></i>
+            <a href="https://twitter.com/Adrian12560493" className="me-4 text-reset" style={{marginRight: '0.5rem', textDecoration: 'none'}}>
+              <i className="icon-twitter-sign"></i>
             </a>
-            <a href="" className="me-4 text-reset">
-              <i className="fab fa-google"></i>
+            <a href="https://www.instagram.com/adrioss_k/" className="me-4 text-reset" style={{marginRight: '0.5rem', textDecoration: 'none'}}>
+              <i className="icon-instagram"></i>
             </a>
-            <a href="" className="me-4 text-reset">
-              <i className="fab fa-instagram"></i>
+            <a href="https://www.linkedin.com/in/adrian-kocha%C5%84ski-228a32174/" className="me-4 text-reset" style={{marginRight: '0.5rem', textDecoration: 'none'}}>
+              <i className="icon-linkedin-sign"></i>
             </a>
-            <a href="" className="me-4 text-reset">
-              <i className="fab fa-linkedin"></i>
-            </a>
-            <a href="" className="me-4 text-reset">
-              <i className="fab fa-github"></i>
+            <a href="https://github.com/AdrianKochanski" className="me-4 text-reset" style={{textDecoration: 'none'}}>
+              <i className="icon-github-sign"></i>
             </a>
           </div>
         </section>
 
         <section className="">
-          <div className="container text-center text-md-start mt-5">
-            <div className="row mt-3">
-              <div className="col-md-3 col-lg-4 col-xl-3 mx-auto mb-4">
-                <h6 className="text-uppercase fw-bold mb-4">
+          <div className="container text-center text-md-start">
+            <div className="row mt-4">
+              <div className="col-md-3 col-lg-4 col-xl-3 mx-auto">
+                <h6 className="text-uppercase fw-bold mb-3">
                   <i className="fas fa-gem me-3"></i>Author
                 </h6>
                 <p>
@@ -44,33 +42,29 @@ function Footer(props) {
                 </p>
               </div>
 
-              <div className="col-md-3 col-lg-2 col-xl-2 mx-auto mb-4">
-                <h6 className="text-uppercase fw-bold mb-4">
+              <div className="col-md-3 col-lg-2 col-xl-2 mx-auto">
+                <h6 className="text-uppercase fw-bold mb-3">
                   Useful links
                 </h6>
                 <p>
-                  <a href="#!" className="text-reset">Github</a>
+                  <a href="https://github.com/AdrianKochanski" className="text-reset">Github</a>
                 </p>
               </div>
 
-              <div className="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4">
-                <h6 className="text-uppercase fw-bold mb-4">
+              <div className="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0">
+                <h6 className="text-uppercase fw-bold mb-3">
                   Contact
                 </h6>
-                <p><i className="fas fa-home me-3"></i> Męcina, 34-654 Męcina, PL</p>
-                <p>
-                  <i className="fas fa-envelope me-3"></i>
-                  adrian.k960607@gmail.com
-                </p>
-                <p><i className="fas fa-phone me-3"></i> + 48 734 604 238</p>
+                <p><i className="icon-home"></i> Męcina, 34-654 Męcina, PL</p>
+                <p><i className="icon-envelope"></i>adrian.k960607@gmail.com</p>
+                <p><i className="icon-phone"></i> + 48 734 604 238</p>
               </div>
             </div>
           </div>
         </section>
 
-        <div className="text-center p-4" style={{backgroundColor: 'rgba(0, 0, 0, 0.05)'}}>
-          © 2022 Copyright:
-          <a className="text-reset fw-bold" href="#">Adrian Kochański</a>
+        <div className="text-center p-3" style={{backgroundColor: 'rgba(0, 0, 0, 0.05)'}}>
+          © 2022 Copyright: Adrian Kochański
         </div>
     </footer>
     );
