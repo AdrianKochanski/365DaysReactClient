@@ -1,50 +1,24 @@
-import React, { useRef, useState } from 'react';
-import { ethers } from 'ethers';
+import React, { useRef } from 'react';
 import { Button, Form, Spinner } from 'react-bootstrap';
-import { updateAuction } from '../services/helpers';
+import propTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { compose } from 'redux';
+import * as actions from '../actions/index';
 
-const auctionForms = ({nftContract, nfts, setNfts, account, currentNft, auctioner, auctions, setAuctions}) => {
+const AuctionForms = ({currentNft, startAuction, auctionLoading}) => {
     const auctionFormRef = useRef(null);
-    const [auctionLoading, setAuctionLoading] = useState(false);
-
-    const getAuctionFormData = () => {
-      const startPrice = auctionFormRef.current[0].value;
-      const daysEnd = auctionFormRef.current[1].value;
-      return {startPrice, daysEnd};
-    }
 
     const auctionHandler = async (e) => {
       e.preventDefault();
-      setAuctionLoading(true);
+      const startPrice = auctionFormRef.current[0].value;
+      const daysEnd = auctionFormRef.current[1].value;
 
-      try {
-        const auctionFormData = getAuctionFormData();
-        await nftContract.approve(auctioner.address, currentNft.id);
-        let approvalEvent = nftContract.filters.Approval(account, auctioner.address, currentNft.id);
-        let auctionStartEvent = auctioner.filters.Start();
-        
-        nftContract.provider.on(approvalEvent, async (log, event) => {
-          await auctioner.start(currentNft.id, ethers.utils.parseEther(auctionFormData.startPrice), auctionFormData.daysEnd);
-        });
-  
-        auctioner.provider.on(auctionStartEvent, async (log, event) => {
-          await updateAuction(currentNft.id, auctioner, auctions, setAuctions, account);
-          clearAuctionForm();
-          nfts[currentNft.id-1].owner = process.env.REACT_APP_AUCTIONER_ADDRESS.toLowerCase();
-          setNfts([...nfts]);
-          setAuctionLoading(false);
-        });
-      } catch (e) {
-        console.log(e);
-        setAuctionLoading(false);
-      }
-    }
-
-    const clearAuctionForm = () => {
-      if(auctionFormRef) {
-        auctionFormRef.current[0].value = null;
-        auctionFormRef.current[1].value = null;
-      }
+      startAuction(startPrice, daysEnd, () => {
+        if(auctionFormRef) {
+          auctionFormRef.current[0].value = null;
+          auctionFormRef.current[1].value = null;
+        }
+      }, currentNft);
     }
 
     return  (
@@ -80,4 +54,16 @@ const auctionForms = ({nftContract, nfts, setNfts, account, currentNft, auctione
     )
 }
 
-export default auctionForms;
+AuctionForms.propTypes = {
+  auctionLoading: propTypes.bool
+};
+
+function mapStateToProps(state) {
+  return {
+      auctionLoading: state.contracts.auctionLoading,
+  };
+}
+
+export default compose(
+  connect(mapStateToProps, actions)
+)(AuctionForms);

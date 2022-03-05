@@ -18,7 +18,9 @@ const store = createStore(
             account: "",
             currentFee: 0,
             nfts: [],
-            contractsConnected: false
+            contractsConnected: false,
+            day365Loading: false,
+            auctionLoading: false
         }
     },
     applyMiddleware(reduxThunk)

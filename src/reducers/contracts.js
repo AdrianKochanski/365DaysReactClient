@@ -1,4 +1,4 @@
-import { CONTRACTS_DATA_INIT, AUCTION_UPDATE, NFT_UPDATE } from '../actions/types';
+import { CONTRACTS_DATA_INIT, AUCTION_UPDATE, NFT_UPDATE, CONTRACTS_UPDATE } from '../actions/types';
 
 const INITIAL_STATE = {
     day365: {},
@@ -6,12 +6,16 @@ const INITIAL_STATE = {
     account: "",
     currentFee: 0,
     nfts: [],
-    contractsConnected: false
+    contractsConnected: false,
+    day365Loading: false,
+    auctionLoading: false
 }
 
 export default (state = INITIAL_STATE, action) => {
     let nftsArr = null;
     let nftIdx = null;
+
+    console.log(action);
 
     switch(action.type) {
         case CONTRACTS_DATA_INIT:
@@ -49,6 +53,11 @@ export default (state = INITIAL_STATE, action) => {
             return {
                 ...state,
                 nfts: [...nftsArr]
+            }
+        case CONTRACTS_UPDATE:
+            return {
+                ...state,
+                ...action.payload
             }
         default:
             return state;

@@ -1,5 +1,10 @@
 import React from 'react';
 import { Carousel, Button, Image } from 'react-bootstrap';
+import propTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { compose } from 'redux';
+import * as actions from '../actions/index';
+
 import { getOwner } from '../services/helpers';
 
 function NftCarousel({nfts, account, setCurrentNft, carouselView, onSelect}) {
@@ -57,4 +62,18 @@ function NftCarousel({nfts, account, setCurrentNft, carouselView, onSelect}) {
     );
 }
 
-export default NftCarousel;
+NftCarousel.propTypes = {
+    account: propTypes.string.isRequired,
+    nfts: propTypes.array
+};
+
+function mapStateToProps(state) {
+  return {
+      account: state.contracts.account,
+      nfts: state.contracts.nfts
+  };
+}
+
+export default compose(
+  connect(mapStateToProps, actions)
+)(NftCarousel);

@@ -11,18 +11,11 @@ import Footer from './Footer';
 import NftCarousel from './NftCarousel';
 import NftDescription from './NftDescription';
 import { shortHash } from '../services/helpers';
-import contractsConnector from '../services/contractsConnector';
 import ContractForms from './ContractForms';
 
-function App(props) {
+function App({account, contractsInit}) {
   const accountRef = useRef(null);
-  const [account, setAccount] = useState(null);
-  const [currentFee, setCurrentFee] = useState("0");
-  const [nftContract, setNftContract] = useState(null);
-  const [auctioner, setAuctioner] = useState(null);
-  const [nfts, setNfts] = useState([]);
   const [currentNft, setCurrentNft] = useState(null);
-  const [auctions, setAuctions] = useState([]);
   const [carouselView, setCarouselView] = useState(0);
 
   const carouselViewHandler = (idx, e) => {
@@ -38,27 +31,12 @@ function App(props) {
   };
 
   useEffect(() => {
-    props.contractsInit(false);
-    contractsConnector({
-      userConnect: false, 
-      setAccount, 
-      setNftContract, 
-      setCurrentFee, 
-      nfts, 
-      setNfts,
-      auctions,
-      setAuctions,
-      setAuctioner
-    });
+    contractsInit(false);
   }, []);
 
   useEffect(() => {
     identiconAsync(account, 80, accountRef);
   }, [account]);
-
-  useEffect(() => {
-    console.log(props);
-  }, [props]);
 
   return (
     <div>
@@ -80,19 +58,11 @@ function App(props) {
             {
               currentNft ? 
               <NftDescription 
-                nfts={nfts}
-                setNfts={setNfts}
                 currentNft={currentNft} 
-                carouselViewHandler={carouselViewHandler} 
-                account={account}
-                auctioner={auctioner}
-                auctions={auctions}
-                setAuctions={setAuctions}/> :
+                carouselViewHandler={carouselViewHandler}/> :
               <NftCarousel 
                 carouselView={carouselView} 
                 onSelect={carouselViewHandler}
-                nfts={nfts} 
-                account={account} 
                 setCurrentNft={setCurrentNft}/>
             }
           </Row>
@@ -101,21 +71,8 @@ function App(props) {
             style={{marginTop: '1rem', width: '100%'}} 
             className="justify-content-md-center">
             <ContractForms 
-              connect={contractsConnector}
-              setAccount={setAccount}
-              setNftContract={setNftContract}
-              setCurrentFee={setCurrentFee}
-              setAuctioner={setAuctioner}
               setCurrentNft={setCurrentNft}
               currentNft={currentNft}
-              nftContract={nftContract}
-              nfts={nfts}
-              setNfts={setNfts}
-              currentFee={currentFee}
-              account={account}
-              auctioner={auctioner}
-              auctions={auctions}
-              setAuctions={setAuctions}
             />
           </Row>
         </Container>
@@ -127,22 +84,12 @@ function App(props) {
 }
 
 App.propTypes = {
-    day365: propTypes.object.isRequired,
-    auctioner: propTypes.object.isRequired,
-    account: propTypes.string.isRequired,
-    currentFee: propTypes.number,
-    nfts: propTypes.array,
-    contractsConnected: propTypes.bool
+    account: propTypes.string.isRequired
 };
 
 function mapStateToProps(state) {
   return {
-      day365: state.contracts.day365,
-      auctioner: state.contracts.auctioner,
-      account: state.contracts.account,
-      currentFee: state.contracts.currentFee,
-      nfts: state.contracts.nfts,
-      contractsConnected: state.contracts.contractsConnected
+      account: state.contracts.account
   };
 }
 

@@ -2,10 +2,13 @@ import React from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import AuctionForm from './AuctionForm';
 import Days365Form from './Days365Form';
+import propTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { compose } from 'redux';
+import * as actions from '../actions/index';
 
 
-const contractForms = ({connect, setAccount, setNftContract, setCurrentFee, setAuctioner, nftContract, 
-  nfts, setNfts, currentFee, account, currentNft, setCurrentNft, auctioner, auctions, setAuctions}) => {
+const ContractForms = ({account, currentNft, setCurrentNft, contractsInit}) => {
 
     if(account) 
     {
@@ -14,25 +17,13 @@ const contractForms = ({connect, setAccount, setNftContract, setCurrentFee, setA
           <Row className="justify-content-md-center" style={{ height: '20rem' }}>
             <Col md="auto">
               <Days365Form
-                nftContract={nftContract}
-                nfts={nfts}
-                setNfts={setNfts}
-                currentFee={currentFee}
-                account={account}
                 currentNft={currentNft}
                 setCurrentNft={setCurrentNft}
               />
             </Col>
             <Col md="auto" hidden={!currentNft}>
               <AuctionForm
-                setNfts={setNfts}
-                nftContract={nftContract}
-                nfts={nfts}
-                account={account}
                 currentNft={currentNft}
-                auctioner={auctioner}
-                auctions={auctions} 
-                setAuctions={setAuctions}
               />
             </Col>
           </Row>
@@ -43,19 +34,23 @@ const contractForms = ({connect, setAccount, setNftContract, setCurrentFee, setA
     {
       return (
         <Button onClick={
-          () => { connect({
-            userConnect: true, 
-            setAccount, 
-            setNftContract, 
-            setCurrentFee, 
-            nfts, 
-            setNfts, 
-            setAuctioner
-          }); }
+          () => { contractsInit(true) }
         } variant="info">Connect Wallet</Button>
       );
     }
     
 }
 
-export default contractForms;
+ContractForms.propTypes = {
+  account: propTypes.string.isRequired,
+};
+
+function mapStateToProps(state) {
+return {
+    account: state.contracts.account
+};
+}
+
+export default compose(
+  connect(mapStateToProps, actions)
+)(ContractForms);

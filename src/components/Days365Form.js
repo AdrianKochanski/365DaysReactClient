@@ -1,14 +1,15 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ethers } from 'ethers';
 import { Container, Row, Col, Button, Form, Card, Spinner } from 'react-bootstrap';
-import ipfs from '../services/ipfs';
-import { getBuffer, getBufferFromJson, getIpfsLink, previewImage } from '../services/helpers';
+import { previewImage } from '../services/helpers';
+import propTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { compose } from 'redux';
+import * as actions from '../actions/index';
 
 
-const days365Form = ({nftContract, nfts, setNfts, currentFee, account, currentNft, setCurrentNft}) => {
+const Days365Form = ({currentFee, day365Loading, updateNftUri, mintNft, currentNft, setCurrentNft}) => {
     const daysFormRef = useRef(null);
 
-    const [mintLoading, setMintLoading] = useState(false);
     const [previewImg, setPreview] = useState('placeholder-image.png');
     const [file, setFile] = useState(null);
 
@@ -39,127 +40,29 @@ const days365Form = ({nftContract, nfts, setNfts, currentFee, account, currentNf
       }
     }
 
-    const updateNftList = ({id, uri, name, description, image, location, temperature}) => {
-      let nftToUpdate;
-
-      if(currentNft) 
-      {
-        nftToUpdate = nfts[currentNft.id-1];
-      }
-      else {
-        nftToUpdate = {};
-      }
-
-      nftToUpdate.id = id;
-      nftToUpdate.uri = uri;
-      nftToUpdate.name = name;
-      nftToUpdate.description = description;
-      nftToUpdate.image = image;
-      nftToUpdate.location = location;
-      nftToUpdate.temperature = temperature;
-      nftToUpdate.owner = account;
-  
-      if(!currentNft)
-      {
-        nfts.push(nftToUpdate);
-      }
-
-      setNfts([...nfts]);
-    }
-
-    const getMetadata = (name, description, imgUri, location, temperature) => {
-      return {
-        name: name,
-        description: description,
-        image: imgUri,
-        attributes: [
-            {
-                trait_type: "location",
-                value: location
-            },
-            {
-                trait_type: "temperature",
-                value: temperature
-            }
-        ]
-      };
-    }
-
-    const handleTokenMetadata = async () => {
-      let image;
-      let name;
-      let id;
-
-      if(file) {
-        const imgBuffer =  await getBuffer(file);
-        const imgResponse = await ipfs.files.add(imgBuffer);
-        image = getIpfsLink(imgResponse[0].hash, file.name);
-      } 
-      else if(currentNft) {
-        image = currentNft.image;
-      }
-
-      if(currentNft) {
-        name = currentNft.name;
-      } else {
-        const d = new Date();
-        name = d.getDate()  + "." + (d.getMonth()+1) + "." + d.getFullYear();
-      }
-
-      const description = daysFormRef.current[1].value;
-      const temperature = daysFormRef.current[2].value;
-      const location = daysFormRef.current[3].value;
-
-      const metadata = getMetadata(name, description, image, location, temperature);
-      const jsonBuffer = await getBufferFromJson(metadata);
-      const metadataResp = await ipfs.files.add(jsonBuffer);
-      const metadataHash = metadataResp[0].hash;
-      const uri = getIpfsLink(metadataHash, metadata.name);
-
-      if(currentNft) {
-        id = currentNft.id;
-        await nftContract.setTokenURI(id, uri);
-      }
-      else {
-        await nftContract.mintToken(uri, {value: ethers.utils.parseEther(currentFee)});
-        id = parseInt(await nftContract.tokensCount()) + 1;
-      }
-
-      return {
-        id, uri, name, description, location, temperature, image
-      }
-    }
-
-    const mintHandler = async (e) => {
+    const interactHandler = async (e) => {
         e.preventDefault();
-        setMintLoading(true);
-
-        try {
-          const nft = await handleTokenMetadata();
-          let eventFilter = null;
+        
+        const description = daysFormRef.current[1].value;
+        const temperature = daysFormRef.current[2].value;
+        const location = daysFormRef.current[3].value;
   
-          if(currentNft) {
-            eventFilter = nftContract.filters.UriChange(nft.tokenId, account);
-          }
-          else {
-            eventFilter = nftContract.filters.Transfer(ethers.constants.AddressZero, account, nft.tokenId);
-          }
-  
-          if (!!eventFilter) {
-            nftContract.provider.on(eventFilter, (log, event) => {
-              updateNftList(nft);
-              setCurrentNft(0);
-              setMintLoading(false);
-              clearMintingForm();
-            });
-          }
-        } catch {
-          setMintLoading(false);
+        if(currentNft) {
+          updateNftUri(file, description, temperature, location, () => {
+            setCurrentNft(0);
+            clearMintingForm();
+          }, currentNft);
+        }
+        else {
+          mintNft(file, description, temperature, location, () => {
+            setCurrentNft(0);
+            clearMintingForm();
+          });
         }
     }
 
     const getButtonDescription = () => {
-      switch(!!mintLoading) {
+      switch(!!day365Loading) {
         case true:
           switch(!!currentNft) {
             case true:
@@ -216,8 +119,8 @@ const days365Form = ({nftContract, nfts, setNfts, currentFee, account, currentNf
               </Form.Group>
 
               <Button 
-                disabled={mintLoading}
-                onClick={mintHandler} 
+                disabled={day365Loading}
+                onClick={interactHandler} 
                 variant="primary" 
                 type="submit">
                   <Spinner
@@ -226,7 +129,7 @@ const days365Form = ({nftContract, nfts, setNfts, currentFee, account, currentNf
                     size="sm"
                     role="status"
                     aria-hidden="true"
-                    hidden={!mintLoading}
+                    hidden={!day365Loading}
                   />
                   {getButtonDescription()}
               </Button>
@@ -238,4 +141,18 @@ const days365Form = ({nftContract, nfts, setNfts, currentFee, account, currentNf
     )
 }
 
-export default days365Form;
+Days365Form.propTypes = {
+  currentFee: propTypes.number,
+  day365Loading: propTypes.bool
+};
+
+function mapStateToProps(state) {
+return {
+    currentFee: state.contracts.currentFee,
+    day365Loading: state.contracts.day365Loading
+};
+}
+
+export default compose(
+  connect(mapStateToProps, actions)
+)(Days365Form);

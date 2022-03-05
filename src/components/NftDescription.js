@@ -1,85 +1,24 @@
-import React , { useRef, useState } from 'react';
+import React , { useRef } from 'react';
 import { Table, Button, Container, Row, Image, Form, Spinner } from 'react-bootstrap';
-import {getOwner, checkWalletAddress, getDateFromMiliseconds, updateAuction} from '../services/helpers';
+import {getOwner, checkWalletAddress, getDateFromMiliseconds} from '../services/helpers';
 import { ethers } from 'ethers';
+import propTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { compose } from 'redux';
+import * as actions from '../actions/index';
 
-function NftDescription({nfts, setNfts, currentNft, carouselViewHandler, account, auctioner, auctions, setAuctions}) {
+function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelAuction, bidAuction, endAuction, withdrawAuction}) {
 
     const bidFormRef = useRef(null);
-    const [bidLoading, setBidLoading] = useState(false);
-    const [endLoading, setEndLoading] = useState(false);
-    const [withdrawLoading, setWithdrawLoading] = useState(false);
-    const [cancelLoading, setCancelLoading] = useState(false);
-    const auction = auctions[currentNft.id-1];
-    console.log(auctions);
+    const auction = nfts[currentNft.id-1].auction;
+    const isLoading = nfts[currentNft.id-1].isLoading;
 
     const bidHandler = async () => {
-        setBidLoading(true);
-        try {
-            const price = bidFormRef.current[0].value;
-            await auctioner.bid(currentNft.id, {value: ethers.utils.parseEther(price)});
-    
-            let bidEvent = auctioner.filters.Bid();
-            
-            auctioner.provider.on(bidEvent, async (log, event) => {
-                await updateAuction(currentNft.id, auctioner, auctions, setAuctions, account);
-                bidFormRef.current[0].value = null;
-                setBidLoading(false);
-            });
-        } catch {
-            setBidLoading(false);
-        }
-    }
+        const price = bidFormRef.current[0].value;
 
-    const endHandler = async () => {
-        setEndLoading(true);
-        try{
-            await auctioner.end(currentNft.id);
-
-            let endEvent = auctioner.filters.End();
-            
-            auctioner.provider.on(endEvent, async (log, event) => {
-                await updateAuction(currentNft.id, auctioner, auctions, setAuctions, account);
-                setEndLoading(false);
-            });
-        } catch {
-            setEndLoading(false);
-        }
-    }
-
-    const withdrawHandler = async () => {
-        setWithdrawLoading(true);
-        try {
-            await auctioner.withdraw(currentNft.id);
-
-            let withdrawEvent = auctioner.filters.Withdraw();
-            
-            auctioner.provider.on(withdrawEvent, async (log, event) => {
-                await updateAuction(currentNft.id, auctioner, auctions, setAuctions, account);
-                setWithdrawLoading(false);
-            });
-        } catch {
-            setWithdrawLoading(false);
-        }
-    }
-
-    const cancelHandler = async () => {
-        setCancelLoading(true);
-        try {
-            await auctioner.cancel(currentNft.id);
-
-            let cancelEvent = auctioner.filters.Cancel();
-            
-            auctioner.provider.on(cancelEvent, async (log, event) => {
-                await updateAuction(currentNft.id, auctioner, auctions, setAuctions, account);
-                nfts[currentNft.id-1].owner = account;
-                setNfts([...nfts]);
-                setCancelLoading(false);
-            });
-        } catch (e) {
-            console.log(e);
-            setCancelLoading(false);
-        }
+        bidAuction(price, () => {
+            bidFormRef.current[0].value = null;
+        }, currentNft);
     }
 
     return (<Table style={{width: '46rem'}} striped bordered variant="dark">
@@ -183,7 +122,7 @@ function NftDescription({nfts, setNfts, currentNft, carouselViewHandler, account
                                         </Form.Group>
 
                                         <Button 
-                                            disabled={bidLoading}
+                                            disabled={isLoading}
                                             onClick={bidHandler}
                                             style={{width: '5rem'}}
                                             variant="success" 
@@ -194,7 +133,7 @@ function NftDescription({nfts, setNfts, currentNft, carouselViewHandler, account
                                                 size="sm"
                                                 role="status"
                                                 aria-hidden="true"
-                                                hidden={!bidLoading}
+                                                hidden={!isLoading}
                                             />
                                             BID
                                         </Button>
@@ -213,9 +152,9 @@ function NftDescription({nfts, setNfts, currentNft, carouselViewHandler, account
                 <td>Interactions</td>
                 <td>
                     <Button 
-                        disabled={endLoading}
+                        disabled={isLoading}
                         hidden={!(auction.isStarted && auction.isEnded)}
-                        onClick={endHandler}
+                        onClick={() => {endAuction(currentNft)}}
                         style={{marginRight: '7px'}}
                         variant="warning" 
                         type="button">
@@ -225,15 +164,15 @@ function NftDescription({nfts, setNfts, currentNft, carouselViewHandler, account
                             size="sm"
                             role="status"
                             aria-hidden="true"
-                            hidden={!endLoading}
+                            hidden={!isLoading}
                         />
                         END
                     </Button>
                     <Button 
-                        disabled={withdrawLoading}
+                        disabled={isLoading}
                         hidden={!(auction.totalBid != 0 && auction.isWinner)}
                         style={{marginRight: '7px'}}
-                        onClick={withdrawHandler}
+                        onClick={() => {withdrawAuction(currentNft)}}
                         variant="warning" 
                         type="button">
                         <Spinner
@@ -242,14 +181,14 @@ function NftDescription({nfts, setNfts, currentNft, carouselViewHandler, account
                             size="sm"
                             role="status"
                             aria-hidden="true"
-                            hidden={!withdrawLoading}
+                            hidden={!isLoading}
                         />
                         WITHDRAW({auction.totalBid + ' ETH'})
                     </Button>
                     <Button 
-                        disabled={cancelLoading}
+                        disabled={isLoading}
                         hidden={!(auction.isOwner && auction.isStarted && !auction.isEnded && auction.winner === ethers.constants.AddressZero)}
-                        onClick={cancelHandler}
+                        onClick={() => {cancelAuction(currentNft)}}
                         variant="danger" 
                         type="button">
                         <Spinner
@@ -258,7 +197,7 @@ function NftDescription({nfts, setNfts, currentNft, carouselViewHandler, account
                             size="sm"
                             role="status"
                             aria-hidden="true"
-                            hidden={!cancelLoading}
+                            hidden={!isLoading}
                         />
                         CANCEL
                     </Button>
@@ -268,4 +207,18 @@ function NftDescription({nfts, setNfts, currentNft, carouselViewHandler, account
     </Table>);
 }
 
-export default NftDescription;
+NftDescription.propTypes = {
+    account: propTypes.string.isRequired,
+    nfts: propTypes.array
+};
+
+function mapStateToProps(state) {
+  return {
+      account: state.contracts.account,
+      nfts: state.contracts.nfts
+  };
+}
+
+export default compose(
+  connect(mapStateToProps, actions)
+)(NftDescription);
