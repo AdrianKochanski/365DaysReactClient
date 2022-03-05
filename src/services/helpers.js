@@ -70,6 +70,31 @@ const getBufferFromJson = (fileJson) => {
     });
 }
 
+const updateAuction = async (nftId, auctioner, auctions, setAuctions, account) => {
+    const auction = await auctioner.getAuction(nftId);
+    const bid = await auctioner.getBid(nftId);
+
+    const owner = auction[0] ? auction[0].toLowerCase() : ethers.constants.AddressZero;
+    const timestamp = auction[1].toNumber();
+    const price = ethers.utils.formatEther(auction[2]);
+    const winner = auction[3] ? auction[3].toLowerCase() : ethers.constants.AddressZero;
+
+    const formatAuction = {
+        owner: owner,
+        timestamp: timestamp,
+        price: price,
+        winner: winner,
+        isWinner: winner === account.toLowerCase(),
+        isStarted: timestamp !== 0,
+        isEnded: timestamp !== 0 && (new Date(timestamp*1000)) < (new Date()),
+        isOwner: owner === account.toLowerCase(),
+        totalBid: ethers.utils.formatEther(bid)
+    };
+
+    auctions[nftId-1] = formatAuction;
+    setAuctions([...auctions]);
+}
+
 export {
     getOwner,
     shortHash,
@@ -78,5 +103,6 @@ export {
     getBufferFromJson,
     previewImage,
     getDateFromMiliseconds,
-    checkWalletAddress
+    checkWalletAddress,
+    updateAuction
 };

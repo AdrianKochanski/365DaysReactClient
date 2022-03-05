@@ -1,20 +1,8 @@
-import React, {useState} from 'react';
-import { Carousel, Button, Image, Spinner } from 'react-bootstrap';
+import React from 'react';
+import { Carousel, Button, Image } from 'react-bootstrap';
 import { getOwner } from '../services/helpers';
 
-function NftCarousel({nfts, account, getAuction, activeIndex, onSelect}) {
-    const [descriptionLoading, setDescriptionLoading] = useState(false);
-
-    const getAuctionHandler = async (nft) => {
-        setDescriptionLoading(true);
-        try {
-            await getAuction(nft, () => {
-                setDescriptionLoading(false);
-            });
-        } catch {
-            setDescriptionLoading(false);
-        }
-    }
+function NftCarousel({nfts, account, setCurrentNft, carouselView, onSelect}) {
 
     const getItems = () => {
         const cards = [];
@@ -31,18 +19,9 @@ function NftCarousel({nfts, account, getAuction, activeIndex, onSelect}) {
                       />
                       <Carousel.Caption>
                         <Button 
-                            disabled={descriptionLoading}
-                            onClick={() => {getAuctionHandler(nft)}} 
+                            onClick={() => {setCurrentNft(nft)}} 
                             variant="primary" 
                             type="button">
-                            <Spinner
-                                hidden={!descriptionLoading}
-                                as="span"
-                                animation="border"
-                                size="sm"
-                                role="status"
-                                aria-hidden="true"
-                            />
                             {nft.uri && nft.name ? nft.name : nft.uri ? "Details" : "Set metadata..."}
                         </Button>
                         <p>{"Owner: " + getOwner(nft, account, false) + " " + nft.description}</p>
@@ -72,7 +51,7 @@ function NftCarousel({nfts, account, getAuction, activeIndex, onSelect}) {
     };
 
     return (
-        <Carousel activeIndex={activeIndex} onSelect={onSelect} style={{maxWidth: '46rem', background: 'gray'}}>
+        <Carousel activeIndex={carouselView} onSelect={onSelect} style={{maxWidth: '46rem', background: 'gray'}}>
             {getItems()}
         </Carousel>
     );

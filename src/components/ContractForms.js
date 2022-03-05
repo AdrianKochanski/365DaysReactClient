@@ -5,7 +5,7 @@ import Days365Form from './Days365Form';
 
 
 const contractForms = ({connect, setAccount, setNftContract, setCurrentFee, setAuctioner, nftContract, 
-  nfts, setNfts, currentFee, account, currentNft, descriptionHandler, auctioner, getAuction}) => {
+  nfts, setNfts, currentFee, account, currentNft, setCurrentNft, auctioner, auctions, setAuctions}) => {
 
     if(account) 
     {
@@ -20,17 +20,19 @@ const contractForms = ({connect, setAccount, setNftContract, setCurrentFee, setA
                 currentFee={currentFee}
                 account={account}
                 currentNft={currentNft}
-                descriptionHandler={descriptionHandler}
+                setCurrentNft={setCurrentNft}
               />
             </Col>
             <Col md="auto" hidden={!currentNft}>
               <AuctionForm
+                setNfts={setNfts}
                 nftContract={nftContract}
                 nfts={nfts}
                 account={account}
                 currentNft={currentNft}
                 auctioner={auctioner}
-                getAuction={getAuction}
+                auctions={auctions} 
+                setAuctions={setAuctions}
               />
             </Col>
           </Row>

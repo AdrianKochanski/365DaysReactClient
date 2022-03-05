@@ -2,6 +2,7 @@ import nftContractJSON from '../abis/Days365.json';
 import auctionerContractJSON from '../abis/Auctioner.json';
 import { ethers } from 'ethers';
 import axios from 'axios';
+import { updateAuction } from '../services/helpers';
 
 const checkMintingFee = async (contract, setFee) => {
     if(contract) {
@@ -11,7 +12,7 @@ const checkMintingFee = async (contract, setFee) => {
     }
 };
 
-const getNFTs = async (contract, nfts, setNfts) => {
+const getNFTs = async (contract, nfts, setNfts, auctioner, auctions, setAuctions, account) => {
     if(contract) {
         let tokensCount = await contract.tokensCount();
 
@@ -50,6 +51,8 @@ const getNFTs = async (contract, nfts, setNfts) => {
                 nfts[i].location = file.data.attributes.filter(a => a.trait_type === "location")[0].value;
                 nfts[i].temperature = file.data.attributes.filter(a => a.trait_type === "temperature")[0].value;
             }
+
+            await updateAuction(i+1, auctioner, auctions, setAuctions, account);
             
             setNfts([...nfts]);
         }
@@ -68,7 +71,8 @@ const getAuctionerContract = (ethereum) => {
     return new ethers.Contract(process.env.REACT_APP_AUCTIONER_ADDRESS, auctionerContractJSON.abi, signer);
 }
 
-const connect = async ({userConnect, setAccount, setNftContract, setCurrentFee, nfts, setNfts, setAuctioner}) => {
+const connect = async ({userConnect, setAccount, setNftContract, setCurrentFee, 
+    nfts, setNfts, auctions, setAuctions, setAuctioner}) => {
     const { ethereum } = window;
 
     if(!ethereum){
@@ -96,10 +100,10 @@ const connect = async ({userConnect, setAccount, setNftContract, setCurrentFee, 
           setNftContract(contract);
           // set Auctioner
           const auctioner = getAuctionerContract(ethereum);
-          console.log(auctioner);
           setAuctioner(auctioner);
+
           await checkMintingFee(contract, setCurrentFee);
-          await getNFTs(contract, nfts, setNfts);
+          await getNFTs(contract, nfts, setNfts, auctioner, auctions, setAuctions, accounts[0]);
         }
         else {
           console.log("Did not found account to connect");

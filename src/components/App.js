@@ -1,17 +1,20 @@
 import React, { useEffect, useState, useRef } from 'react';
-import './App.css';
 import { Container, Row, Navbar, Nav, Image } from 'react-bootstrap';
-import Footer from './Footer';
-import { ethers } from 'ethers';
+import propTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { compose } from 'redux';
+import * as actions from '../actions/index';
 import { identiconAsync } from '../services/identicon';
 
+import './App.css';
+import Footer from './Footer';
 import NftCarousel from './NftCarousel';
 import NftDescription from './NftDescription';
 import { shortHash } from '../services/helpers';
-import connect from '../services/contractsConnector';
+import contractsConnector from '../services/contractsConnector';
 import ContractForms from './ContractForms';
 
-function App() {
+function App(props) {
   const accountRef = useRef(null);
   const [account, setAccount] = useState(null);
   const [currentFee, setCurrentFee] = useState("0");
@@ -19,29 +22,32 @@ function App() {
   const [auctioner, setAuctioner] = useState(null);
   const [nfts, setNfts] = useState([]);
   const [currentNft, setCurrentNft] = useState(null);
-  const [auction, setAuction] = useState(null);
-  const [nftView, setActiveNftView] = useState(0);
+  const [auctions, setAuctions] = useState([]);
+  const [carouselView, setCarouselView] = useState(0);
 
-  const nftViewHandler = (idx, e) => {
+  const carouselViewHandler = (idx, e) => {
     if(currentNft) 
     {
-      setActiveNftView(currentNft.id-1);
+      setCarouselView(currentNft.id-1);
       setCurrentNft(null);
     }
     else 
     {
-      setActiveNftView(idx);
+      setCarouselView(idx);
     }
   };
 
   useEffect(() => {
-    connect({
+    props.contractsInit(false);
+    contractsConnector({
       userConnect: false, 
       setAccount, 
       setNftContract, 
       setCurrentFee, 
       nfts, 
-      setNfts, 
+      setNfts,
+      auctions,
+      setAuctions,
       setAuctioner
     });
   }, []);
@@ -50,28 +56,9 @@ function App() {
     identiconAsync(account, 80, accountRef);
   }, [account]);
 
-  const getAuction = async (nft, callback) => {
-    const auction = await auctioner.getAuction(nft.id);
-    const bid = await auctioner.getBid(nft.id);
-
-    const formatAuction = {
-        owner: auction[0].toLowerCase(),
-        timestamp: auction[1].toNumber(),
-        price: ethers.utils.formatEther(auction[2]),
-        winner: auction[3].toLowerCase(),
-        isWinner: auction[3].toLowerCase() === account.toLowerCase(),
-        isStarted: auction[1].toNumber() !== 0,
-        isEnded: auction[1].toNumber() !== 0 && (new Date(auction[1].toNumber()*1000)) < (new Date()),
-        isOwner: auction[0].toLowerCase() === account.toLowerCase(),
-        totalBid: ethers.utils.formatEther(bid)
-    };
-
-    console.log(formatAuction);
-
-    setAuction(formatAuction);
-    setCurrentNft(nft);
-    if(callback) callback();
-  }
+  useEffect(() => {
+    console.log(props);
+  }, [props]);
 
   return (
     <div>
@@ -93,18 +80,20 @@ function App() {
             {
               currentNft ? 
               <NftDescription 
+                nfts={nfts}
+                setNfts={setNfts}
                 currentNft={currentNft} 
-                nftViewHandler={nftViewHandler} 
+                carouselViewHandler={carouselViewHandler} 
                 account={account}
                 auctioner={auctioner}
-                getAuction={getAuction}
-                auction={auction}/> :
+                auctions={auctions}
+                setAuctions={setAuctions}/> :
               <NftCarousel 
-                activeIndex={nftView} 
-                onSelect={nftViewHandler}
+                carouselView={carouselView} 
+                onSelect={carouselViewHandler}
                 nfts={nfts} 
                 account={account} 
-                getAuction={getAuction}/>
+                setCurrentNft={setCurrentNft}/>
             }
           </Row>
           <Row 
@@ -112,12 +101,12 @@ function App() {
             style={{marginTop: '1rem', width: '100%'}} 
             className="justify-content-md-center">
             <ContractForms 
-              connect={connect}
+              connect={contractsConnector}
               setAccount={setAccount}
               setNftContract={setNftContract}
               setCurrentFee={setCurrentFee}
               setAuctioner={setAuctioner}
-              descriptionHandler={setCurrentNft}
+              setCurrentNft={setCurrentNft}
               currentNft={currentNft}
               nftContract={nftContract}
               nfts={nfts}
@@ -125,7 +114,8 @@ function App() {
               currentFee={currentFee}
               account={account}
               auctioner={auctioner}
-              getAuction={getAuction}
+              auctions={auctions}
+              setAuctions={setAuctions}
             />
           </Row>
         </Container>
@@ -136,4 +126,26 @@ function App() {
   );
 }
 
-export default App;
+App.propTypes = {
+    day365: propTypes.object.isRequired,
+    auctioner: propTypes.object.isRequired,
+    account: propTypes.string.isRequired,
+    currentFee: propTypes.number,
+    nfts: propTypes.array,
+    contractsConnected: propTypes.bool
+};
+
+function mapStateToProps(state) {
+  return {
+      day365: state.contracts.day365,
+      auctioner: state.contracts.auctioner,
+      account: state.contracts.account,
+      currentFee: state.contracts.currentFee,
+      nfts: state.contracts.nfts,
+      contractsConnected: state.contracts.contractsConnected
+  };
+}
+
+export default compose(
+  connect(mapStateToProps, actions)
+)(App);

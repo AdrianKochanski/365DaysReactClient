@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { ethers } from 'ethers';
 import { Button, Form, Spinner } from 'react-bootstrap';
+import { updateAuction } from '../services/helpers';
 
-const auctionForms = ({nftContract, nfts, account, currentNft, auctioner, getAuction}) => {
+const auctionForms = ({nftContract, nfts, setNfts, account, currentNft, auctioner, auctions, setAuctions}) => {
     const auctionFormRef = useRef(null);
     const [auctionLoading, setAuctionLoading] = useState(false);
 
@@ -20,20 +21,21 @@ const auctionForms = ({nftContract, nfts, account, currentNft, auctioner, getAuc
         const auctionFormData = getAuctionFormData();
         await nftContract.approve(auctioner.address, currentNft.id);
         let approvalEvent = nftContract.filters.Approval(account, auctioner.address, currentNft.id);
-        let auctionStartEvent = auctioner.filters.Start(currentNft.id, null, null);
+        let auctionStartEvent = auctioner.filters.Start();
         
         nftContract.provider.on(approvalEvent, async (log, event) => {
           await auctioner.start(currentNft.id, ethers.utils.parseEther(auctionFormData.startPrice), auctionFormData.daysEnd);
         });
   
         auctioner.provider.on(auctionStartEvent, async (log, event) => {
+          await updateAuction(currentNft.id, auctioner, auctions, setAuctions, account);
           clearAuctionForm();
-          await getAuction(currentNft);
-          setAuctionLoading(false);
           nfts[currentNft.id-1].owner = process.env.REACT_APP_AUCTIONER_ADDRESS.toLowerCase();
-          //setNfts([...nfts]);
+          setNfts([...nfts]);
+          setAuctionLoading(false);
         });
-      } catch {
+      } catch (e) {
+        console.log(e);
         setAuctionLoading(false);
       }
     }

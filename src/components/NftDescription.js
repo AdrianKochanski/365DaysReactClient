@@ -1,15 +1,17 @@
 import React , { useRef, useState } from 'react';
 import { Table, Button, Container, Row, Image, Form, Spinner } from 'react-bootstrap';
-import {getOwner, checkWalletAddress, getDateFromMiliseconds} from '../services/helpers';
+import {getOwner, checkWalletAddress, getDateFromMiliseconds, updateAuction} from '../services/helpers';
 import { ethers } from 'ethers';
 
-function NftDescription({currentNft, nftViewHandler, account, auctioner, auction, getAuction}) {
+function NftDescription({nfts, setNfts, currentNft, carouselViewHandler, account, auctioner, auctions, setAuctions}) {
 
     const bidFormRef = useRef(null);
     const [bidLoading, setBidLoading] = useState(false);
     const [endLoading, setEndLoading] = useState(false);
     const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [cancelLoading, setCancelLoading] = useState(false);
+    const auction = auctions[currentNft.id-1];
+    console.log(auctions);
 
     const bidHandler = async () => {
         setBidLoading(true);
@@ -17,11 +19,11 @@ function NftDescription({currentNft, nftViewHandler, account, auctioner, auction
             const price = bidFormRef.current[0].value;
             await auctioner.bid(currentNft.id, {value: ethers.utils.parseEther(price)});
     
-            let bidEvent = auctioner.filters.Bid(currentNft.id, account, null);
+            let bidEvent = auctioner.filters.Bid();
             
             auctioner.provider.on(bidEvent, async (log, event) => {
+                await updateAuction(currentNft.id, auctioner, auctions, setAuctions, account);
                 bidFormRef.current[0].value = null;
-                await getAuction(currentNft);
                 setBidLoading(false);
             });
         } catch {
@@ -34,10 +36,10 @@ function NftDescription({currentNft, nftViewHandler, account, auctioner, auction
         try{
             await auctioner.end(currentNft.id);
 
-            let endEvent = auctioner.filters.End(currentNft.id, null, null);
+            let endEvent = auctioner.filters.End();
             
             auctioner.provider.on(endEvent, async (log, event) => {
-                await getAuction(currentNft);
+                await updateAuction(currentNft.id, auctioner, auctions, setAuctions, account);
                 setEndLoading(false);
             });
         } catch {
@@ -50,10 +52,10 @@ function NftDescription({currentNft, nftViewHandler, account, auctioner, auction
         try {
             await auctioner.withdraw(currentNft.id);
 
-            let withdrawEvent = auctioner.filters.Withdraw(currentNft.id, account, null);
+            let withdrawEvent = auctioner.filters.Withdraw();
             
             auctioner.provider.on(withdrawEvent, async (log, event) => {
-                await getAuction(currentNft);
+                await updateAuction(currentNft.id, auctioner, auctions, setAuctions, account);
                 setWithdrawLoading(false);
             });
         } catch {
@@ -66,19 +68,18 @@ function NftDescription({currentNft, nftViewHandler, account, auctioner, auction
         try {
             await auctioner.cancel(currentNft.id);
 
-            let cancelEvent = auctioner.filters.Cancel(currentNft.id, null);
+            let cancelEvent = auctioner.filters.Cancel();
             
             auctioner.provider.on(cancelEvent, async (log, event) => {
-                await getAuction(currentNft);
+                await updateAuction(currentNft.id, auctioner, auctions, setAuctions, account);
+                nfts[currentNft.id-1].owner = account;
+                setNfts([...nfts]);
                 setCancelLoading(false);
             });
-        } catch {
+        } catch (e) {
+            console.log(e);
             setCancelLoading(false);
         }
-    }
-
-    const backHandler = (e) => {
-        nftViewHandler(currentNft.id-1, e);
     }
 
     return (<Table style={{width: '46rem'}} striped bordered variant="dark">
@@ -104,7 +105,7 @@ function NftDescription({currentNft, nftViewHandler, account, auctioner, auction
                             <tr>
                                 <td>
                                     <Button 
-                                    onClick={backHandler}
+                                    onClick={(e) => {carouselViewHandler(currentNft.id-1, e);}}
                                     variant="primary" 
                                     type="button">
                                     Back

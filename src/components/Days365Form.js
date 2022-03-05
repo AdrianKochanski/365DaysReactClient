@@ -5,7 +5,7 @@ import ipfs from '../services/ipfs';
 import { getBuffer, getBufferFromJson, getIpfsLink, previewImage } from '../services/helpers';
 
 
-const days365Form = ({nftContract, nfts, setNfts, currentFee, account, currentNft, descriptionHandler}) => {
+const days365Form = ({nftContract, nfts, setNfts, currentFee, account, currentNft, setCurrentNft}) => {
     const daysFormRef = useRef(null);
 
     const [mintLoading, setMintLoading] = useState(false);
@@ -148,7 +148,7 @@ const days365Form = ({nftContract, nfts, setNfts, currentFee, account, currentNf
           if (!!eventFilter) {
             nftContract.provider.on(eventFilter, (log, event) => {
               updateNftList(nft);
-              descriptionHandler(0);
+              setCurrentNft(0);
               setMintLoading(false);
               clearMintingForm();
             });
