@@ -1,6 +1,7 @@
-import React , { useRef } from 'react';
+import React , { useRef, useEffect } from 'react';
 import { Table, Button, Container, Row, Image, Form, Spinner } from 'react-bootstrap';
 import {getOwner, checkWalletAddress, getDateFromMiliseconds} from '../services/helpers';
+import { identiconAsync } from '../services/identicon';
 import { ethers } from 'ethers';
 import propTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -10,6 +11,9 @@ import * as actions from '../actions/index';
 function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelAuction, bidAuction, endAuction, withdrawAuction}) {
 
     const bidFormRef = useRef(null);
+    const ownerIdentRef = useRef(null);
+    const auctionSellerIdentRef = useRef(null);
+    const auctionWinnerIdentRef = useRef(null);
     const auction = nfts[currentNft.id-1].auction;
     const isLoading = nfts[currentNft.id-1].isLoading;
 
@@ -20,6 +24,14 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
             bidFormRef.current[0].value = null;
         });
     }
+
+    useEffect(() => {
+        identiconAsync(currentNft.owner, 50, ownerIdentRef);
+        if(auction) {
+            identiconAsync(auction.owner, 50, auctionSellerIdentRef);
+            identiconAsync(auction.winner, 50, auctionWinnerIdentRef);
+        }
+      }, [currentNft]);
 
     return (<Table style={{width: '46rem'}} striped bordered variant="dark">
         <thead>
@@ -73,7 +85,10 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
         <tbody>
             <tr>
                 <td>Owner</td>
-                <td>{getOwner(currentNft, account, true)}</td>
+                <td>
+                    <Image alt='Contract' ref={ownerIdentRef} style={{width: '25px', height: '25px'}} />
+                    {" " + getOwner(currentNft, account, true)}
+                </td>
             </tr>
             <tr>
                 <td>Metadata Uri</td>
@@ -98,7 +113,10 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
                             </tr>
                             <tr>
                                 <td>Seller:</td>
-                                <td>{ checkWalletAddress(auction.owner, account, false) }</td>
+                                <td>
+                                    <Image alt='Contract' ref={auctionSellerIdentRef} style={{width: '25px', height: '25px'}} />
+                                    {" " + checkWalletAddress(auction.owner, account, false) }
+                                </td>
                             </tr>
                             <tr>
                                 <td>Current Price:</td>
@@ -106,7 +124,10 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
                             </tr>
                             <tr>
                                 <td>Current Winner:</td>
-                                <td>{ checkWalletAddress(auction.winner, account, false) }</td>
+                                <td>
+                                    <Image alt='Contract' ref={auctionWinnerIdentRef} style={{width: '25px', height: '25px'}} />
+                                    {" " + checkWalletAddress(auction.winner, account, false) }
+                                </td>
                             </tr>
                             <tr>
                                 <td>Time End:</td>

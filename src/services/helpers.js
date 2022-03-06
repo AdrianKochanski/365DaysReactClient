@@ -1,8 +1,7 @@
 import { ethers } from 'ethers';
 
 const shortHash = (hash) => {
-    if(ethers.constants.AddressZero === hash) return 'None';
-    else return hash ? hash.slice(0, 5) + "..." + hash.slice(hash.length-4, hash.length) : "None";
+    return hash ? hash.slice(0, 5) + "..." + hash.slice(hash.length-4, hash.length) : "None";
 }
 
 const getOwner = (nft, account, showFull) =>{

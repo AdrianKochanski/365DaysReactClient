@@ -15,6 +15,7 @@ import ContractForms from './ContractForms';
 
 function App({account, contractsInit, currentNft, setCurrentNft}) {
   const accountRef = useRef(null);
+  const contractRef = useRef(null);
   const [carouselView, setCarouselView] = useState(0);
 
   const carouselViewHandler = (idx, e) => {
@@ -30,16 +31,13 @@ function App({account, contractsInit, currentNft, setCurrentNft}) {
   };
 
   useEffect(() => {
+    identiconAsync(process.env.REACT_APP_CONTRACT_ADDRESS, 80, contractRef);
     contractsInit(false);
   }, []);
 
   useEffect(() => {
     identiconAsync(account, 80, accountRef);
   }, [account]);
-
-  useEffect(() => {
-    console.log(currentNft);
-  }, [currentNft]);
 
   return (
     <div>
@@ -48,9 +46,13 @@ function App({account, contractsInit, currentNft, setCurrentNft}) {
           <Container>
             <Navbar.Brand href="/">365 DAY NFT</Navbar.Brand>
             <Nav className="me-auto">
+              <Image alt='Contract' ref={contractRef} style={{width: '40px', height: '40px'}} />
+              <Nav.Link href={`https://etherscan.io/address/${process.env.REACT_APP_CONTRACT_ADDRESS}`}>
+                {'Contract: ' + shortHash(process.env.REACT_APP_CONTRACT_ADDRESS.toLowerCase())}
+              </Nav.Link>
               <Image alt='Account' ref={accountRef} style={{width: '40px', height: '40px'}} />
               <Nav.Link href={`https://etherscan.io/address/${account}`}>
-                {shortHash(account)}
+                {'Account: ' + shortHash(account)}
               </Nav.Link>
             </Nav>
           </Container>

@@ -79,7 +79,7 @@ const Days365Form = ({currentFee, day365Loading, updateNftUri, mintNft, currentN
     }
 
     useEffect(() => {
-      setDataOnForm();
+        setDataOnForm();
     }, [currentNft]);
 
     return  (

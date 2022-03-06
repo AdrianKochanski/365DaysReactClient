@@ -197,8 +197,26 @@ export const mintNft = (file, description, temperature, location, callback) => a
             });
 
             dispatch({
+                type: AUCTION_UPDATE, 
+                payload: {
+                    nftId: id,
+                    owner: ethers.constants.AddressZero,
+                    timestamp: 0,
+                    price: 0,
+                    winner: ethers.constants.AddressZero,
+                    isWinner: false,
+                    isStarted: false,
+                    isEnded: false,
+                    isOwner: false,
+                    totalBid: 0
+                }
+            });
+
+            dispatch({
                 type: CONTRACTS_UPDATE, payload: {day365Loading: false}
             });
+
+            dispatch(setCurrentNft(id));
             
             if(callback) {
                 callback();
