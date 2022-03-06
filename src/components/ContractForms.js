@@ -8,7 +8,7 @@ import { compose } from 'redux';
 import * as actions from '../actions/index';
 
 
-const ContractForms = ({account, currentNft, setCurrentNft, contractsInit}) => {
+const ContractForms = ({account, currentNft, contractsInit}) => {
 
     if(account) 
     {
@@ -16,15 +16,10 @@ const ContractForms = ({account, currentNft, setCurrentNft, contractsInit}) => {
         <Container fluid="md">
           <Row className="justify-content-md-center" style={{ height: '20rem' }}>
             <Col md="auto">
-              <Days365Form
-                currentNft={currentNft}
-                setCurrentNft={setCurrentNft}
-              />
+              <Days365Form/>
             </Col>
             <Col md="auto" hidden={!currentNft}>
-              <AuctionForm
-                currentNft={currentNft}
-              />
+              <AuctionForm/>
             </Col>
           </Row>
         </Container>
@@ -43,11 +38,13 @@ const ContractForms = ({account, currentNft, setCurrentNft, contractsInit}) => {
 
 ContractForms.propTypes = {
   account: propTypes.string.isRequired,
+  currentNft: propTypes.object
 };
 
 function mapStateToProps(state) {
 return {
-    account: state.contracts.account
+    account: state.contracts.account,
+    currentNft: state.contracts.currentNft
 };
 }
 

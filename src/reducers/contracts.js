@@ -1,4 +1,4 @@
-import { CONTRACTS_DATA_INIT, AUCTION_UPDATE, NFT_UPDATE, CONTRACTS_UPDATE } from '../actions/types';
+import { CONTRACTS_DATA_INIT, AUCTION_UPDATE, NFT_UPDATE, CONTRACTS_UPDATE, CURRENT_NFT_UPDATE } from '../actions/types';
 
 const INITIAL_STATE = {
     day365: {},
@@ -8,7 +8,8 @@ const INITIAL_STATE = {
     nfts: [],
     contractsConnected: false,
     day365Loading: false,
-    auctionLoading: false
+    auctionLoading: false,
+    currentNft: null
 }
 
 export default (state = INITIAL_STATE, action) => {
@@ -59,6 +60,20 @@ export default (state = INITIAL_STATE, action) => {
                 ...state,
                 ...action.payload
             }
+        case CURRENT_NFT_UPDATE:
+            if(action.payload.currentNft !== null) {
+                return {
+                    ...state,
+                    currentNft: {...action.payload.currentNft}
+                }
+            }
+            else {
+                return {
+                    ...state,
+                    currentNft: null
+                }
+            }
+
         default:
             return state;
     }

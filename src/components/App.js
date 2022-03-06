@@ -13,16 +13,15 @@ import NftDescription from './NftDescription';
 import { shortHash } from '../services/helpers';
 import ContractForms from './ContractForms';
 
-function App({account, contractsInit}) {
+function App({account, contractsInit, currentNft, setCurrentNft}) {
   const accountRef = useRef(null);
-  const [currentNft, setCurrentNft] = useState(null);
   const [carouselView, setCarouselView] = useState(0);
 
   const carouselViewHandler = (idx, e) => {
     if(currentNft) 
     {
       setCarouselView(currentNft.id-1);
-      setCurrentNft(null);
+      setCurrentNft(0);
     }
     else 
     {
@@ -37,6 +36,10 @@ function App({account, contractsInit}) {
   useEffect(() => {
     identiconAsync(account, 80, accountRef);
   }, [account]);
+
+  useEffect(() => {
+    console.log(currentNft);
+  }, [currentNft]);
 
   return (
     <div>
@@ -58,22 +61,17 @@ function App({account, contractsInit}) {
             {
               currentNft ? 
               <NftDescription 
-                currentNft={currentNft} 
                 carouselViewHandler={carouselViewHandler}/> :
               <NftCarousel 
                 carouselView={carouselView} 
-                onSelect={carouselViewHandler}
-                setCurrentNft={setCurrentNft}/>
+                onSelect={carouselViewHandler}/>
             }
           </Row>
           <Row 
             hidden={!!currentNft && account.toLowerCase() !== currentNft.owner.toLowerCase()}
             style={{marginTop: '1rem', width: '100%'}} 
             className="justify-content-md-center">
-            <ContractForms 
-              setCurrentNft={setCurrentNft}
-              currentNft={currentNft}
-            />
+            <ContractForms/>
           </Row>
         </Container>
       </div>
@@ -84,12 +82,14 @@ function App({account, contractsInit}) {
 }
 
 App.propTypes = {
-    account: propTypes.string.isRequired
+    account: propTypes.string.isRequired,
+    currentNft: propTypes.object
 };
 
 function mapStateToProps(state) {
   return {
-      account: state.contracts.account
+      account: state.contracts.account,
+      currentNft: state.contracts.currentNft
   };
 }
 

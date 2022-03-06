@@ -20,7 +20,8 @@ const store = createStore(
             nfts: [],
             contractsConnected: false,
             day365Loading: false,
-            auctionLoading: false
+            auctionLoading: false,
+            currentNft: null
         }
     },
     applyMiddleware(reduxThunk)

@@ -49,13 +49,11 @@ const Days365Form = ({currentFee, day365Loading, updateNftUri, mintNft, currentN
   
         if(currentNft) {
           updateNftUri(file, description, temperature, location, () => {
-            setCurrentNft(0);
             clearMintingForm();
-          }, currentNft);
+          });
         }
         else {
           mintNft(file, description, temperature, location, () => {
-            setCurrentNft(0);
             clearMintingForm();
           });
         }
@@ -143,13 +141,15 @@ const Days365Form = ({currentFee, day365Loading, updateNftUri, mintNft, currentN
 
 Days365Form.propTypes = {
   currentFee: propTypes.number,
-  day365Loading: propTypes.bool
+  day365Loading: propTypes.bool,
+  currentNft: propTypes.object
 };
 
 function mapStateToProps(state) {
 return {
     currentFee: state.contracts.currentFee,
-    day365Loading: state.contracts.day365Loading
+    day365Loading: state.contracts.day365Loading,
+    currentNft: state.contracts.currentNft
 };
 }
 

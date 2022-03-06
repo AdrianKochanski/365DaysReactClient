@@ -18,7 +18,7 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
 
         bidAuction(price, () => {
             bidFormRef.current[0].value = null;
-        }, currentNft);
+        });
     }
 
     return (<Table style={{width: '46rem'}} striped bordered variant="dark">
@@ -44,7 +44,7 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
                             <tr>
                                 <td>
                                     <Button 
-                                    onClick={(e) => {carouselViewHandler(currentNft.id-1, e);}}
+                                    onClick={(e) => {carouselViewHandler(0, e);}}
                                     variant="primary" 
                                     type="button">
                                     Back
@@ -154,7 +154,7 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
                     <Button 
                         disabled={isLoading}
                         hidden={!(auction.isStarted && auction.isEnded)}
-                        onClick={() => {endAuction(currentNft)}}
+                        onClick={() => {endAuction()}}
                         style={{marginRight: '7px'}}
                         variant="warning" 
                         type="button">
@@ -172,7 +172,7 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
                         disabled={isLoading}
                         hidden={!(auction.totalBid != 0 && auction.isWinner)}
                         style={{marginRight: '7px'}}
-                        onClick={() => {withdrawAuction(currentNft)}}
+                        onClick={() => {withdrawAuction()}}
                         variant="warning" 
                         type="button">
                         <Spinner
@@ -188,7 +188,7 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
                     <Button 
                         disabled={isLoading}
                         hidden={!(auction.isOwner && auction.isStarted && !auction.isEnded && auction.winner === ethers.constants.AddressZero)}
-                        onClick={() => {cancelAuction(currentNft)}}
+                        onClick={() => {cancelAuction()}}
                         variant="danger" 
                         type="button">
                         <Spinner
@@ -209,13 +209,15 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
 
 NftDescription.propTypes = {
     account: propTypes.string.isRequired,
-    nfts: propTypes.array
+    nfts: propTypes.array,
+    currentNft: propTypes.object
 };
 
 function mapStateToProps(state) {
   return {
       account: state.contracts.account,
-      nfts: state.contracts.nfts
+      nfts: state.contracts.nfts,
+      currentNft: state.contracts.currentNft
   };
 }
 
