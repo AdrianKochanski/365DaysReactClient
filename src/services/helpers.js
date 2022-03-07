@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 
 const shortHash = (hash) => {
     return hash ? hash.slice(0, 5) + "..." + hash.slice(hash.length-4, hash.length) : "None";

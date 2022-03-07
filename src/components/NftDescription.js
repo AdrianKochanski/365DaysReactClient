@@ -27,14 +27,14 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
 
     useEffect(() => {
         identiconAsync(currentNft.owner, 50, ownerIdentRef);
-      }, [currentNft]);
+    }, [currentNft]);
 
-      useEffect(() => {
+    useEffect(() => {
         if(auction) {
             identiconAsync(auction.owner, 50, auctionSellerIdentRef);
             identiconAsync(auction.winner, 50, auctionWinnerIdentRef);
         }
-      }, [auction]);
+    }, [auction]);
 
     return (<Table style={{width: '46rem'}} striped bordered variant="dark">
         <thead>

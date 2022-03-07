@@ -37,13 +37,18 @@ function NftCarousel({nfts, account, setCurrentNft, carouselView, onSelect}) {
                     style={{width: '46rem', height: '28rem', objectFit: 'cover'}}
                 />
                 <Carousel.Caption>
+                    {(nft && nft.auction && nft.auction.isStarted && !nft.auction.isEnded) ? 
+                     <p style={{backgroundColor: 'blue', color: 'yellow', marginBottom: '0px', fontWeight: 'bold', width: '170px', margin: 'auto'}}>{getOwner(nft, account, false) + " " + nft.auction.price + " ETH"}</p> : 
+                     <p style={{backgroundColor: 'white', color: 'black', marginBottom: '0px', fontWeight: 'bold', width: '170px', margin: 'auto'}}>{getOwner(nft, account, false)}</p>
+                    }
                 <Button 
+                    style={{margin: '5px 0px 5px 0px'}}
                     onClick={() => {setCurrentNft(nft.id)}} 
                     variant="primary" 
                     type="button">
-                    {nft.uri && nft.name ? nft.name : nft.uri ? "Details" : "Set metadata..."}
+                    <p style={{marginBottom: '0px', fontWeight: 'bold'}}>{nft.uri && nft.name ? "#" + nft.name : "Details.."}</p>
                 </Button>
-                <p>{"Owner: " + getOwner(nft, account, false) + " " + nft.description}</p>
+                <p style={{marginBottom: '0px'}}>{nft.description}</p>
                 </Carousel.Caption>
             </Carousel.Item>
             : nftPlaceholder()
