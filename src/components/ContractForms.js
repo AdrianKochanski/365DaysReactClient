@@ -29,7 +29,7 @@ const ContractForms = ({account, currentNft, contractsInit}) => {
     {
       return (
         <Button onClick={
-          () => { contractsInit(true) }
+          () => { contractsInit(true, false) }
         } variant="info">Connect Wallet</Button>
       );
     }

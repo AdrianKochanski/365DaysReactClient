@@ -16,6 +16,8 @@ export default (state = INITIAL_STATE, action) => {
     let nftsArr = null;
     let nftIdx = null;
 
+    console.log(action);
+
     switch(action.type) {
         case CONTRACTS_DATA_INIT:
             return {

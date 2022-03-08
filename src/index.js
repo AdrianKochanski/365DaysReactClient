@@ -3,33 +3,13 @@ import ReactDOM from 'react-dom';
 import 'bootstrap/dist/css/bootstrap.css'
 import App from './components/App';
 import * as serviceWorker from './serviceWorker';
-import { createStore, applyMiddleware } from 'redux';
-import reduxThunk from 'redux-thunk';
+
 import { Provider } from 'react-redux';
-
-import reducers from './reducers/index';
-
-const store = createStore(
-    reducers,
-    {
-        contracts: {
-            day365: {},
-            auctioner: {},
-            account: "",
-            currentFee: 0,
-            nfts: [],
-            contractsConnected: false,
-            day365Loading: false,
-            auctionLoading: false,
-            currentNft: null
-        }
-    },
-    applyMiddleware(reduxThunk)
-);
+import { store, saveSubscribe } from './services/configureStore';
 
 ReactDOM.render(
     <Provider store={store}>
-        <App/>
+        <App saveSubscribe={saveSubscribe} />
     </Provider>
 , document.getElementById('root'));
 

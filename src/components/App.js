@@ -13,7 +13,7 @@ import NftDescription from './NftDescription';
 import { shortHash } from '../services/helpers';
 import ContractForms from './ContractForms';
 
-function App({account, contractsInit, currentNft, setCurrentNft}) {
+function App({account, contractsInit, currentNft, setCurrentNft, saveSubscribe}) {
   const accountRef = useRef(null);
   const contractRef = useRef(null);
   const [carouselView, setCarouselView] = useState(0);
@@ -32,7 +32,12 @@ function App({account, contractsInit, currentNft, setCurrentNft}) {
 
   useEffect(() => {
     identiconAsync(process.env.REACT_APP_CONTRACT_ADDRESS, 80, contractRef);
-    contractsInit(false);
+    contractsInit(false, false);
+    const unsubscibeSave = saveSubscribe();
+    
+    return () => {
+      unsubscibeSave();
+    };
   }, []);
 
   useEffect(() => {
