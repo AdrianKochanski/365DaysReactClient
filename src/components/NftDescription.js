@@ -1,21 +1,25 @@
 import React , { useRef, useEffect } from 'react';
 import { Table, Button, Container, Row, Image, Form, Spinner } from 'react-bootstrap';
-import {getOwner, checkWalletAddress, getDateFromMiliseconds} from '../services/helpers';
+import {getOwner, checkWalletAddress, getDateFromMiliseconds, getDefaultAuction, getDefaultNft} from '../services/helpers';
 import { identiconAsync } from '../services/identicon';
 import { ethers } from 'ethers';
 import propTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import * as actions from '../actions/index';
+import { useParams, useNavigate } from "react-router-dom";
 
-function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelAuction, bidAuction, endAuction, withdrawAuction}) {
-
+function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidAuction, endAuction, withdrawAuction, setCurrentNft}) {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const currentNft = nfts[id-1] ? nfts[id-1] : getDefaultNft(id);
     const bidFormRef = useRef(null);
     const ownerIdentRef = useRef(null);
     const auctionSellerIdentRef = useRef(null);
     const auctionWinnerIdentRef = useRef(null);
-    const auction = nfts[currentNft.id-1].auction;
-    const isLoading = nfts[currentNft.id-1].isLoading;
+    const auction = currentNft.auction;
+    console.log(auction);
+    const isLoading = currentNft.isLoading;
 
     const bidHandler = async () => {
         const price = bidFormRef.current[0].value;
@@ -30,10 +34,8 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
     }, [currentNft]);
 
     useEffect(() => {
-        if(auction) {
-            identiconAsync(auction.owner, 50, auctionSellerIdentRef);
-            identiconAsync(auction.winner, 50, auctionWinnerIdentRef);
-        }
+        identiconAsync(auction.owner, 50, auctionSellerIdentRef);
+        identiconAsync(auction.winner, 50, auctionWinnerIdentRef);
     }, [auction]);
 
     return (<Table style={{width: '46rem'}} striped bordered variant="dark">
@@ -59,7 +61,11 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
                             <tr>
                                 <td>
                                     <Button 
-                                    onClick={(e) => {carouselViewHandler(0, e);}}
+                                    onClick={(e) => {
+                                        carouselViewHandler(currentNft.id-1, e);
+                                        navigate("/");
+                                        setCurrentNft(0);
+                                    }}
                                     variant="primary" 
                                     type="button">
                                     Back
@@ -169,7 +175,7 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
                 </td>
             </tr>
             <tr hidden={!(
-                    (auction.totalBid != 0 && auction.isWinner) || 
+                    (auction.totalBid != 0 && !auction.isWinner) || 
                     (auction.isStarted && auction.isEnded) || 
                     (auction.isOwner && auction.isStarted && !auction.isEnded && auction.winner === ethers.constants.AddressZero)
                 )}>
@@ -194,7 +200,7 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
                     </Button>
                     <Button 
                         disabled={isLoading}
-                        hidden={!(auction.totalBid != 0 && auction.isWinner)}
+                        hidden={!(auction.totalBid != 0 && !auction.isWinner)}
                         style={{marginRight: '7px'}}
                         onClick={() => {withdrawAuction()}}
                         variant="warning" 
@@ -233,15 +239,13 @@ function NftDescription({nfts, currentNft, carouselViewHandler, account, cancelA
 
 NftDescription.propTypes = {
     account: propTypes.string.isRequired,
-    nfts: propTypes.array,
-    currentNft: propTypes.object
+    nfts: propTypes.array
 };
 
 function mapStateToProps(state) {
   return {
       account: state.contracts.account,
-      nfts: state.contracts.nfts,
-      currentNft: state.contracts.currentNft
+      nfts: state.contracts.nfts
   };
 }
 

@@ -5,6 +5,10 @@ import { connect } from 'react-redux';
 import { compose } from 'redux';
 import * as actions from '../actions/index';
 import { identiconAsync } from '../services/identicon';
+import {
+  Routes,
+  Route
+} from "react-router-dom";
 
 import './App.css';
 import Footer from './Footer';
@@ -13,21 +17,13 @@ import NftDescription from './NftDescription';
 import { shortHash } from '../services/helpers';
 import ContractForms from './ContractForms';
 
-function App({account, contractsInit, currentNft, setCurrentNft, saveSubscribe}) {
+function App({account, contractsInit, saveSubscribe, currentNft}) {
   const accountRef = useRef(null);
   const contractRef = useRef(null);
   const [carouselView, setCarouselView] = useState(0);
 
   const carouselViewHandler = (idx, e) => {
-    if(currentNft) 
-    {
-      setCarouselView(currentNft.id-1);
-      setCurrentNft(0);
-    }
-    else 
-    {
-      setCarouselView(idx);
-    }
+    setCarouselView(idx);
   };
 
   useEffect(() => {
@@ -65,14 +61,14 @@ function App({account, contractsInit, currentNft, setCurrentNft, saveSubscribe})
 
         <Container fluid="md" style={{width: '100%', marginBottom: '10rem'}}>
           <Row style={{marginTop: '1rem', width: '100%'}} className="justify-content-md-center">
-            {
-              currentNft ? 
-              <NftDescription 
-                carouselViewHandler={carouselViewHandler}/> :
-              <NftCarousel 
-                carouselView={carouselView} 
-                onSelect={carouselViewHandler}/>
-            }
+              <Routes>
+                <Route path="/nfts/:id" element={
+                  <NftDescription carouselViewHandler={carouselViewHandler}/>
+                }/>
+                <Route path="/" element={
+                  <NftCarousel carouselView={carouselView} onSelect={carouselViewHandler}/>
+                }/>
+              </Routes>
           </Row>
           <Row 
             hidden={!!currentNft && account.toLowerCase() !== currentNft.owner.toLowerCase()}

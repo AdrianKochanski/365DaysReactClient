@@ -4,10 +4,11 @@ import propTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import * as actions from '../actions/index';
+import { Link } from "react-router-dom";
 
 import { getOwner } from '../services/helpers';
 
-function NftCarousel({nfts, account, setCurrentNft, carouselView, onSelect}) {
+function NftCarousel({nfts, account, carouselView, onSelect, setCurrentNft}) {
 
     const nftPlaceholder = () => {
         return (
@@ -43,10 +44,17 @@ function NftCarousel({nfts, account, setCurrentNft, carouselView, onSelect}) {
                     }
                 <Button 
                     style={{margin: '5px 0px 5px 0px'}}
-                    onClick={() => {setCurrentNft(nft.id)}} 
                     variant="primary" 
                     type="button">
-                    <p style={{marginBottom: '0px', fontWeight: 'bold'}}>{nft.uri && nft.name ? "#" + nft.name : "Details.."}</p>
+                    <p style={{marginBottom: '0px'}}>
+                        <Link
+                        onClick={() => {setCurrentNft(nft.id)}}
+                        style={{textDecoration: 'none', color: 'white'}}
+                        to={`/nfts/${nft.id}`}
+                        key={nft.id}>
+                            {nft.uri && nft.name ? "#" + nft.name : "Details.."}
+                        </Link>
+                    </p>
                 </Button>
                 <p style={{marginBottom: '0px'}}>{nft.description}</p>
                 </Carousel.Caption>

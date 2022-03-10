@@ -9,7 +9,6 @@ import * as actions from '../actions/index';
 
 
 const ContractForms = ({account, currentNft, contractsInit}) => {
-
     if(account) 
     {
       return  (

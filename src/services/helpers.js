@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 
 const shortHash = (hash) => {
     return hash ? hash.slice(0, 5) + "..." + hash.slice(hash.length-4, hash.length) : "None";
@@ -64,6 +65,37 @@ const getBufferFromJson = (fileJson) => {
     });
 }
 
+const getDefaultNft = (id) => {
+    return {
+        id: id,
+        uri: "",
+        name: "",
+        description: "",
+        image: "",
+        location: "",
+        temperature: 0,
+        owner: ethers.constants.AddressZero,
+        isLoading: false,
+        auction: getDefaultAuction(id)
+    };
+}
+
+const getDefaultAuction = (id) => {
+    return {
+        nftId: id,
+        owner: ethers.constants.AddressZero,
+        timestamp: 0,
+        price: 0,
+        winner: ethers.constants.AddressZero,
+        isWinner: false,
+        isStarted: false,
+        isEnded: false,
+        isOwner: false,
+        totalBid: 0,
+        wasInit: false
+    };
+}
+
 export {
     getOwner,
     shortHash,
@@ -72,5 +104,7 @@ export {
     getBufferFromJson,
     previewImage,
     getDateFromMiliseconds,
-    checkWalletAddress
+    checkWalletAddress,
+    getDefaultAuction,
+    getDefaultNft
 };

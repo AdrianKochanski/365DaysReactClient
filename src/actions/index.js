@@ -2,7 +2,7 @@ import nftContractJSON from '../abis/Days365.json';
 import auctionerContractJSON from '../abis/Auctioner.json';
 import { ethers } from 'ethers';
 import axios from 'axios';
-import { getBuffer, getBufferFromJson, getIpfsLink } from '../services/helpers';
+import { getBuffer, getBufferFromJson, getIpfsLink, getDefaultNft } from '../services/helpers';
 import ipfs from '../services/ipfs';
 
 import { CONTRACTS_DATA_INIT, CONTRACTS_UPDATE, AUCTION_UPDATE, NFT_UPDATE, CURRENT_NFT_UPDATE } from './types';
@@ -75,17 +75,9 @@ const nftInit = (nftId, skipInitialState) => async (dispatch, getState) => {
         const tokenUri = await contract.tokenURI(nftId);
         const owner = await contract.ownerOf(nftId);
         
-        data = {
-            id: nftId,
-            uri: tokenUri,
-            name: "",
-            description: "",
-            image: "",
-            location: "",
-            temperature: 0,
-            owner: owner.toLowerCase(),
-            isLoading: false
-        };
+        data = getDefaultNft(nftId);
+        data.uri = tokenUri;
+        data.owner = owner.toLowerCase();
     
         try {
             file = await axios({
@@ -118,7 +110,7 @@ const nftInit = (nftId, skipInitialState) => async (dispatch, getState) => {
 const auctionInit = (nftId, skipInitialState) => async (dispatch, getState) => {
     const nftState = getState().contracts.nfts[nftId-1];
 
-    if(skipInitialState || !nftState || !nftState.auction) {
+    if(skipInitialState || !nftState.auction.wasInit) {
         const auctioner = getState().contracts.auctioner;
         const account = getState().contracts.account;
     
@@ -140,7 +132,8 @@ const auctionInit = (nftId, skipInitialState) => async (dispatch, getState) => {
             isStarted: timestamp !== 0,
             isEnded: timestamp !== 0 && (new Date(timestamp*1000)) < (new Date()),
             isOwner: owner === account.toLowerCase(),
-            totalBid: ethers.utils.formatEther(bid)
+            totalBid: ethers.utils.formatEther(bid),
+            wasInit: true
         };
     
         dispatch({
@@ -230,7 +223,7 @@ export const mintNft = (file, description, temperature, location, callback) => a
             dispatch(setCurrentNft(id));
             
             if(callback) {
-                callback();
+                callback(id);
             }
         });
 
@@ -330,7 +323,7 @@ export const startAuction = (startPrice, daysEnd, callback) => async (dispatch, 
         });
 
         auctioner.provider.on(auctionStartEvent, async (log, event) => {
-            dispatch(auctionInit(currentNft.id, false));
+            dispatch(auctionInit(currentNft.id, true));
 
             dispatch({
                 type: NFT_UPDATE, payload: {

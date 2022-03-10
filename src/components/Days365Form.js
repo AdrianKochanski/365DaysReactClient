@@ -5,10 +5,12 @@ import propTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import * as actions from '../actions/index';
+import { useNavigate } from 'react-router-dom';
 
 
 const Days365Form = ({currentFee, day365Loading, updateNftUri, mintNft, currentNft, setCurrentNft}) => {
     const daysFormRef = useRef(null);
+    const navigate = useNavigate();
 
     const [previewImg, setPreview] = useState('placeholder-image.png');
     const [file, setFile] = useState(null);
@@ -48,13 +50,15 @@ const Days365Form = ({currentFee, day365Loading, updateNftUri, mintNft, currentN
         const location = daysFormRef.current[3].value;
   
         if(currentNft) {
-          updateNftUri(file, description, temperature, location, () => {
+          updateNftUri(file, description, temperature, location, (nftId) => {
             clearMintingForm();
+            navigate(`nfts/${nftId}`);
           });
         }
         else {
-          mintNft(file, description, temperature, location, () => {
+          mintNft(file, description, temperature, location, (nftId) => {
             clearMintingForm();
+            navigate(`nfts/${nftId}`);
           });
         }
     }
