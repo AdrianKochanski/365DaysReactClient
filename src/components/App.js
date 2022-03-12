@@ -92,7 +92,7 @@ App.propTypes = {
 function mapStateToProps(state) {
   return {
       account: state.contracts.account,
-      currentNft: state.contracts.currentNft
+      currentNft: state.contracts.currentNftId ? state.contracts.nfts[state.contracts.currentNftId-1] : null
   };
 }
 

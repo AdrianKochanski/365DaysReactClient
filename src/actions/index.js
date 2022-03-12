@@ -2,10 +2,10 @@ import nftContractJSON from '../abis/Days365.json';
 import auctionerContractJSON from '../abis/Auctioner.json';
 import { ethers } from 'ethers';
 import axios from 'axios';
-import { getBuffer, getBufferFromJson, getIpfsLink, getDefaultNft } from '../services/helpers';
+import { getBuffer, getBufferFromJson, getIpfsLink, getDefaultNft, getMetadata } from '../services/helpers';
 import ipfs from '../services/ipfs';
 
-import { CONTRACTS_DATA_INIT, CONTRACTS_UPDATE, AUCTION_UPDATE, NFT_UPDATE, CURRENT_NFT_UPDATE } from './types';
+import { CONTRACTS_DATA_INIT, CONTRACTS_UPDATE, AUCTION_UPDATE, NFT_UPDATE } from './types';
 
 export const contractsInit = (userConnect, skipInitialState) => async dispatch => {
     const { ethereum } = window;
@@ -109,10 +109,10 @@ const nftInit = (nftId, skipInitialState) => async (dispatch, getState) => {
 
 const auctionInit = (nftId, skipInitialState) => async (dispatch, getState) => {
     const nftState = getState().contracts.nfts[nftId-1];
+    const account = getState().contracts.account;
 
     if(skipInitialState || !nftState.auction.wasInit) {
         const auctioner = getState().contracts.auctioner;
-        const account = getState().contracts.account;
     
         const auction = await auctioner.getAuction(nftId);
         const bid = await auctioner.getBid(nftId);
@@ -140,6 +140,17 @@ const auctionInit = (nftId, skipInitialState) => async (dispatch, getState) => {
             type: AUCTION_UPDATE,
             payload: formatAuction
         });
+    }    
+    else if (account.toLowerCase() === nftState.auction.owner && !nftState.auction.isOwner || 
+        account.toLowerCase() === nftState.auction.winner && !nftState.auction.isWinner) {
+        dispatch({
+            type: AUCTION_UPDATE,
+            payload: {
+                nftId: nftId,
+                isOwner: nftState.auction.owner === account.toLowerCase(),
+                isWinner: nftState.auction.winner === account.toLowerCase()
+            }
+        });
     }
 }
 
@@ -148,11 +159,11 @@ export const mintNft = (file, description, temperature, location, callback) => a
     const account = getState().contracts.account;
     const currentFee = getState().contracts.currentFee.toString();
 
-    dispatch({
-        type: CONTRACTS_UPDATE, payload: {day365Loading: true}
-    });
-
     try {
+        dispatch({
+            type: CONTRACTS_UPDATE, payload: {day365Loading: true}
+        });
+
         const d = new Date();
         const name = d.getDate()  + "." + (d.getMonth()+1) + "." + d.getFullYear();
         let image;
@@ -164,22 +175,7 @@ export const mintNft = (file, description, temperature, location, callback) => a
             image = getIpfsLink(imgResponse[0].hash, file.name);
         } 
 
-        const metadata = {
-            name: name,
-            description: description,
-            image: image,
-            attributes: [
-                {
-                    trait_type: "location",
-                    value: location
-                },
-                {
-                    trait_type: "temperature",
-                    value: temperature
-                }
-            ]
-        }
-
+        const metadata = getMetadata(name, description, image, location, temperature);
         const jsonBuffer = await getBufferFromJson(metadata);
         const metadataResp = await ipfs.files.add(jsonBuffer);
         const metadataHash = metadataResp[0].hash;
@@ -236,18 +232,18 @@ export const mintNft = (file, description, temperature, location, callback) => a
       }
 }
 
-export const updateNftUri = (file, description, temperature, location, callback) => async (dispatch, getState) => {
+export const updateNftUri = (nftId, file, description, temperature, location, callback) => async (dispatch, getState) => {
+    const currentNftId = Number.parseInt(nftId);
     const contract = getState().contracts.day365;
-    const currentNft = getState().contracts.currentNft;
-
-    dispatch({
-        type: CONTRACTS_UPDATE, payload: {day365Loading: true}
-    });
+    const currentNft = getState().contracts.nfts[currentNftId-1];
 
     try {
+        dispatch({
+            type: CONTRACTS_UPDATE, payload: {day365Loading: true}
+        });
+
         let image = currentNft.image;
         let name = currentNft.name;
-        let id = currentNft.id;
 
         if(file) {
             const imgBuffer =  await getBuffer(file);
@@ -255,44 +251,28 @@ export const updateNftUri = (file, description, temperature, location, callback)
             image = getIpfsLink(imgResponse[0].hash, file.name);
         }
 
-        const metadata = {
-            name: name,
-            description: description,
-            image: image,
-            attributes: [
-                {
-                    trait_type: "location",
-                    value: location
-                },
-                {
-                    trait_type: "temperature",
-                    value: temperature
-                }
-            ]
-        }
+        const metadata = getMetadata(name, description, image, location, temperature);
         const jsonBuffer = await getBufferFromJson(metadata);
         const metadataResp = await ipfs.files.add(jsonBuffer);
         const metadataHash = metadataResp[0].hash;
         const uri = getIpfsLink(metadataHash, metadata.name);
-        await contract.setTokenURI(id, uri);
-        const eventFilter = contract.filters.UriChange(id, null);
+        await contract.setTokenURI(currentNftId, uri);
+        const eventFilter = contract.filters.UriChange(currentNftId, null);
 
         contract.provider.on(eventFilter, (log, event) => {
             dispatch({
                 type: NFT_UPDATE, 
                 payload: {
-                    id, uri, name, description, location, temperature, image
+                    id: currentNftId, uri, name, description, location, temperature, image
                 }
             });
 
             dispatch({
                 type: CONTRACTS_UPDATE, payload: {day365Loading: false}
             });
-
-            dispatch(setCurrentNft(id));
             
             if(callback) {
-                callback();
+                callback(currentNftId);
             }
         });
       } catch (e) {
@@ -303,31 +283,31 @@ export const updateNftUri = (file, description, temperature, location, callback)
       }
 }
 
-export const startAuction = (startPrice, daysEnd, callback) => async (dispatch, getState) => {
+export const startAuction = (nftId, startPrice, daysEnd, callback) => async (dispatch, getState) => {
+    const currentNftId = Number.parseInt(nftId);
     const contract = getState().contracts.day365;
     const auctioner = getState().contracts.auctioner;
     const account = getState().contracts.account;
-    const currentNft = getState().contracts.currentNft;
-    
-    dispatch({
-        type: CONTRACTS_UPDATE, payload: {auctionLoading: true}
-    });
 
     try {
-        await contract.approve(auctioner.address, currentNft.id);
-        let approvalEvent = contract.filters.Approval(account, auctioner.address, currentNft.id);
-        let auctionStartEvent = auctioner.filters.Start(currentNft.id, null, null);
+        dispatch({
+            type: CONTRACTS_UPDATE, payload: {auctionLoading: true}
+        });
+
+        await contract.approve(auctioner.address, currentNftId);
+        let approvalEvent = contract.filters.Approval(account, auctioner.address, currentNftId);
+        let auctionStartEvent = auctioner.filters.Start(currentNftId, null, null);
         
         contract.provider.on(approvalEvent, async (log, event) => {
-            await auctioner.start(currentNft.id, ethers.utils.parseEther(startPrice), daysEnd);
+            await auctioner.start(currentNftId, ethers.utils.parseEther(startPrice), daysEnd);
         });
 
         auctioner.provider.on(auctionStartEvent, async (log, event) => {
-            dispatch(auctionInit(currentNft.id, true));
+            dispatch(auctionInit(currentNftId, true));
 
             dispatch({
                 type: NFT_UPDATE, payload: {
-                    id: currentNft.id,
+                    id: currentNftId,
                     owner: process.env.REACT_APP_AUCTIONER_ADDRESS.toLowerCase()
                 }
             });
@@ -335,8 +315,6 @@ export const startAuction = (startPrice, daysEnd, callback) => async (dispatch, 
             dispatch({
                 type: CONTRACTS_UPDATE, payload: {auctionLoading: false}
             });
-
-            dispatch(setCurrentNft(currentNft.id));
 
             if(callback) {
                 callback();
@@ -352,23 +330,23 @@ export const startAuction = (startPrice, daysEnd, callback) => async (dispatch, 
     }
 }
 
-export const cancelAuction = () => async (dispatch, getState) => {
+export const cancelAuction = (nftId) => async (dispatch, getState) => {
+    const currentNftId = Number.parseInt(nftId);
     const auctioner = getState().contracts.auctioner;
     const account = getState().contracts.account;
-    const currentNft = getState().contracts.currentNft;
-    
-    dispatch({
-        type: NFT_UPDATE, payload: {id: currentNft.id, isLoading: true}
-    });
 
     try {
-        await auctioner.cancel(currentNft.id);
-        let cancelEvent = auctioner.filters.Cancel(currentNft.id, null);
+        dispatch({
+            type: NFT_UPDATE, payload: {id: currentNftId, isLoading: true}
+        });
+
+        await auctioner.cancel(currentNftId);
+        let cancelEvent = auctioner.filters.Cancel(currentNftId, null);
         
         auctioner.provider.on(cancelEvent, async (log, event) => {
             dispatch({
                 type: AUCTION_UPDATE, payload: {
-                    nftId: currentNft.id, 
+                    nftId: currentNftId, 
                     timestamp: 0,
                     isStarted: false,
                     price: 0
@@ -377,46 +355,46 @@ export const cancelAuction = () => async (dispatch, getState) => {
 
             dispatch({
                 type: NFT_UPDATE, payload: {
-                    id: currentNft.id, 
+                    id: currentNftId, 
                     owner: account, 
                     isLoading: false
                 }
             });
-
-            dispatch(setCurrentNft(currentNft.id));
         });
     } 
     catch (e) {
         console.log(e);
         dispatch({
-            type: NFT_UPDATE, payload: {id: currentNft.id, isLoading: false}
+            type: NFT_UPDATE, payload: {id: currentNftId, isLoading: false}
         });
     }
 }
 
-export const bidAuction = (price, callback) => async (dispatch, getState) => {
+export const bidAuction = (nftId, price, callback) => async (dispatch, getState) => {
+    const currentNftId = Number.parseInt(nftId);
     const auctioner = getState().contracts.auctioner;
     const account = getState().contracts.account;
-    const currentNft = getState().contracts.currentNft;
-    const auction = getState().contracts.nfts[currentNft.id-1].auction;
+    console.log(currentNftId-1);
+    console.log(getState().contracts.nfts[currentNftId-1]);
+    const auction = getState().contracts.nfts[currentNftId-1].auction;
     let nextPrice = Number.parseFloat(price);
 
-    if(auction.winner === account) {
-        nextPrice = Number.parseFloat(auction.price) + nextPrice;
-    }
-    
-    dispatch({
-        type: NFT_UPDATE, payload: {id: currentNft.id, isLoading: true}
-    });
-
     try {
-        await auctioner.bid(currentNft.id, {value: ethers.utils.parseEther(price)});
-        let bidEvent = auctioner.filters.Bid(currentNft.id, account, null);
+        if(auction.winner === account) {
+            nextPrice = Number.parseFloat(auction.price) + nextPrice;
+        }
+        
+        dispatch({
+            type: NFT_UPDATE, payload: {id: currentNftId, isLoading: true}
+        });
+
+        await auctioner.bid(currentNftId, {value: ethers.utils.parseEther(price)});
+        let bidEvent = auctioner.filters.Bid(currentNftId, account, null);
         
         auctioner.provider.on(bidEvent, async (log, event) => {
             dispatch({
                 type: AUCTION_UPDATE, payload: {
-                    nftId: currentNft.id,
+                    nftId: currentNftId,
                     price: nextPrice,
                     winner: account,
                     isWinner: true,
@@ -425,10 +403,8 @@ export const bidAuction = (price, callback) => async (dispatch, getState) => {
             });
 
             dispatch({
-                type: NFT_UPDATE, payload: {id: currentNft.id, isLoading: false}
+                type: NFT_UPDATE, payload: {id: currentNftId, isLoading: false}
             });
-
-            dispatch(setCurrentNft(currentNft.id));
 
             if(callback) {
                 callback();
@@ -438,34 +414,34 @@ export const bidAuction = (price, callback) => async (dispatch, getState) => {
     catch (e) {
         console.log(e);
         dispatch({
-            type: NFT_UPDATE, payload: {id: currentNft.id, isLoading: false}
+            type: NFT_UPDATE, payload: {id: currentNftId, isLoading: false}
         });
     }
 }
 
-export const endAuction = () => async (dispatch, getState) => {
+export const endAuction = (nftId) => async (dispatch, getState) => {
+    const currentNftId = Number.parseInt(nftId);
     const auctioner = getState().contracts.auctioner;
     const account = getState().contracts.account;
-    const currentNft = getState().contracts.currentNft;
-    const auction = getState().contracts.nfts[currentNft.id-1].auction;
+    const auction = getState().contracts.nfts[currentNftId-1].auction;
     let nextOwner = account;
 
-    if(auction.winner !== ethers.constants.AddressZero) {
-        nextOwner = auction.winner;
-    }
-    
-    dispatch({
-        type: NFT_UPDATE, payload: {id: currentNft.id, isLoading: true}
-    });
-
     try {
-        await auctioner.end(currentNft.id);
-        let endEvent = auctioner.filters.End(currentNft.id, null, null);
+        if(auction.winner !== ethers.constants.AddressZero) {
+            nextOwner = auction.winner;
+        }
+        
+        dispatch({
+            type: NFT_UPDATE, payload: {id: currentNftId, isLoading: true}
+        });
+
+        await auctioner.end(currentNftId);
+        let endEvent = auctioner.filters.End(currentNftId, null, null);
         
         auctioner.provider.on(endEvent, async (log, event) => {
             dispatch({
                 type: AUCTION_UPDATE, payload: {
-                    nftId: currentNft.id,
+                    nftId: currentNftId,
                     timestamp: 0,
                     isStarted: false,
                     price: 0,
@@ -474,70 +450,65 @@ export const endAuction = () => async (dispatch, getState) => {
 
             dispatch({
                 type: NFT_UPDATE, payload: {
-                    id: currentNft.id, 
+                    id: currentNftId, 
                     owner: nextOwner,
                     isLoading: false
                 }
             });
-
-            dispatch(setCurrentNft(currentNft.id));
         });
     } 
     catch (e) {
         console.log(e);
         dispatch({
-            type: NFT_UPDATE, payload: {id: currentNft.id, isLoading: false}
+            type: NFT_UPDATE, payload: {id: currentNftId, isLoading: false}
         });
     }
 }
 
-export const withdrawAuction = () => async (dispatch, getState) => {
+export const withdrawAuction = (nftId) => async (dispatch, getState) => {
+    const currentNftId = Number.parseInt(nftId);
     const auctioner = getState().contracts.auctioner;
-    const currentNft = getState().contracts.currentNft;
     const account = getState().contracts.account;
-    
-    dispatch({
-        type: NFT_UPDATE, payload: {id: currentNft.id, isLoading: true}
-    });
 
     try {
-        await auctioner.withdraw(currentNft.id);
-        let withdrawEvent = auctioner.filters.Withdraw(currentNft.id, account, null);
+        dispatch({
+            type: NFT_UPDATE, payload: {id: currentNftId, isLoading: true}
+        });
+
+        await auctioner.withdraw(currentNftId);
+        let withdrawEvent = auctioner.filters.Withdraw(currentNftId, account, null);
         
         auctioner.provider.on(withdrawEvent, async (log, event) => {
             dispatch({
                 type: AUCTION_UPDATE, payload: {
-                    nftId: currentNft.id,
+                    nftId: currentNftId,
                     totalBid: 0
                 }
             });
 
             dispatch({
-                type: NFT_UPDATE, payload: {id: currentNft.id, isLoading: false}
+                type: NFT_UPDATE, payload: {id: currentNftId, isLoading: false}
             });
-
-            dispatch(setCurrentNft(currentNft.id));
         });
     } 
     catch (e) {
         console.log(e);
         dispatch({
-            type: NFT_UPDATE, payload: {id: currentNft.id, isLoading: false}
+            type: NFT_UPDATE, payload: {id: currentNftId, isLoading: false}
         });
     }
 }
 
 export const setCurrentNft = (nftId) => async (dispatch, getState) => {
-    const nfts = getState().contracts.nfts;
 
     if(nftId > 0) {
         dispatch({
-            type: CURRENT_NFT_UPDATE, payload: {currentNft: nfts[nftId-1]}
+            type: CONTRACTS_UPDATE, payload: {currentNftId: Number.parseInt(nftId)}
         });
     } 
     else {
         dispatch({
-            type: CURRENT_NFT_UPDATE, payload: {currentNft: null}
+            type: CONTRACTS_UPDATE, payload: {currentNftId: null}
         });
     }
 }

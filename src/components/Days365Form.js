@@ -8,13 +8,11 @@ import * as actions from '../actions/index';
 import { useNavigate } from 'react-router-dom';
 
 
-const Days365Form = ({currentFee, day365Loading, updateNftUri, mintNft, currentNft, setCurrentNft}) => {
+const Days365Form = ({currentFee, day365Loading, updateNftUri, mintNft, currentNft}) => {
     const daysFormRef = useRef(null);
     const navigate = useNavigate();
-
     const [previewImg, setPreview] = useState('placeholder-image.png');
     const [file, setFile] = useState(null);
-
 
     const clearMintingForm = () => {
       if(daysFormRef) 
@@ -50,14 +48,10 @@ const Days365Form = ({currentFee, day365Loading, updateNftUri, mintNft, currentN
         const location = daysFormRef.current[3].value;
   
         if(currentNft) {
-          updateNftUri(file, description, temperature, location, (nftId) => {
-            clearMintingForm();
-            navigate(`nfts/${nftId}`);
-          });
+          updateNftUri(currentNft.id, file, description, temperature, location);
         }
         else {
           mintNft(file, description, temperature, location, (nftId) => {
-            clearMintingForm();
             navigate(`nfts/${nftId}`);
           });
         }
@@ -135,7 +129,7 @@ const Days365Form = ({currentFee, day365Loading, updateNftUri, mintNft, currentN
                   />
                   {getButtonDescription()}
               </Button>
-              <div>{"Current Fee: " + currentFee + " ETH"}</div>
+              <div hidden={!!currentNft}>{"Current Fee: " + currentFee + " ETH"}</div>
             </Col>
           </Row>
         </Container>
@@ -153,7 +147,7 @@ function mapStateToProps(state) {
 return {
     currentFee: state.contracts.currentFee,
     day365Loading: state.contracts.day365Loading,
-    currentNft: state.contracts.currentNft
+    currentNft: state.contracts.currentNftId ? state.contracts.nfts[state.contracts.currentNftId-1] : null
 };
 }
 

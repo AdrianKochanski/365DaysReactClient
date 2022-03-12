@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { compose } from 'redux';
 import * as actions from '../actions/index';
 
-const AuctionForms = ({ startAuction, auctionLoading}) => {
+const AuctionForms = ({currentNft, startAuction, auctionLoading}) => {
     const auctionFormRef = useRef(null);
 
     const auctionHandler = async (e) => {
@@ -13,7 +13,7 @@ const AuctionForms = ({ startAuction, auctionLoading}) => {
       const startPrice = auctionFormRef.current[0].value;
       const daysEnd = auctionFormRef.current[1].value;
 
-      startAuction(startPrice, daysEnd, () => {
+      startAuction(currentNft.id, startPrice, daysEnd, () => {
         if(auctionFormRef) {
           auctionFormRef.current[0].value = null;
           auctionFormRef.current[1].value = null;
@@ -55,12 +55,14 @@ const AuctionForms = ({ startAuction, auctionLoading}) => {
 }
 
 AuctionForms.propTypes = {
-  auctionLoading: propTypes.bool
+  auctionLoading: propTypes.bool,
+  currentNft: propTypes.object
 };
 
 function mapStateToProps(state) {
   return {
-      auctionLoading: state.contracts.auctionLoading
+      auctionLoading: state.contracts.auctionLoading,
+      currentNft: state.contracts.currentNftId ? state.contracts.nfts[state.contracts.currentNftId-1] : null
   };
 }
 

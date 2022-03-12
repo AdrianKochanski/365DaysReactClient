@@ -1,6 +1,6 @@
 import React , { useRef, useEffect } from 'react';
 import { Table, Button, Container, Row, Image, Form, Spinner } from 'react-bootstrap';
-import {getOwner, checkWalletAddress, getDateFromMiliseconds, getDefaultAuction, getDefaultNft} from '../services/helpers';
+import {getOwner, checkWalletAddress, getDateFromMiliseconds, getDefaultNft} from '../services/helpers';
 import { identiconAsync } from '../services/identicon';
 import { ethers } from 'ethers';
 import propTypes from 'prop-types';
@@ -18,7 +18,6 @@ function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidA
     const auctionSellerIdentRef = useRef(null);
     const auctionWinnerIdentRef = useRef(null);
     const auction = currentNft.auction;
-    console.log(auction);
     const isLoading = currentNft.isLoading;
 
     const bidHandler = async () => {
@@ -184,7 +183,7 @@ function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidA
                     <Button 
                         disabled={isLoading}
                         hidden={!(auction.isStarted && auction.isEnded)}
-                        onClick={() => {endAuction()}}
+                        onClick={() => {endAuction(id)}}
                         style={{marginRight: '7px'}}
                         variant="warning" 
                         type="button">
@@ -202,7 +201,7 @@ function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidA
                         disabled={isLoading}
                         hidden={!(auction.totalBid != 0 && !auction.isWinner)}
                         style={{marginRight: '7px'}}
-                        onClick={() => {withdrawAuction()}}
+                        onClick={() => {withdrawAuction(id)}}
                         variant="warning" 
                         type="button">
                         <Spinner
@@ -218,7 +217,7 @@ function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidA
                     <Button 
                         disabled={isLoading}
                         hidden={!(auction.isOwner && auction.isStarted && !auction.isEnded && auction.winner === ethers.constants.AddressZero)}
-                        onClick={() => {cancelAuction()}}
+                        onClick={() => {cancelAuction(id)}}
                         variant="danger" 
                         type="button">
                         <Spinner

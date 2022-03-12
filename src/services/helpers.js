@@ -96,6 +96,24 @@ const getDefaultAuction = (id) => {
     };
 }
 
+const getMetadata = (name, description, image, location, temperature) => {
+    return {
+        name: name,
+        description: description,
+        image: image,
+        attributes: [
+            {
+                trait_type: "location",
+                value: location
+            },
+            {
+                trait_type: "temperature",
+                value: temperature
+            }
+        ]
+    }
+}
+
 export {
     getOwner,
     shortHash,
@@ -106,5 +124,6 @@ export {
     getDateFromMiliseconds,
     checkWalletAddress,
     getDefaultAuction,
-    getDefaultNft
+    getDefaultNft,
+    getMetadata
 };
