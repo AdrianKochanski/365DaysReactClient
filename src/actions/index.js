@@ -64,7 +64,7 @@ const nftsDataInit = (skipInitialState) => async (dispatch, getState) => {
     }
 }
 
-const nftInit = (nftId, skipInitialState) => async (dispatch, getState) => {
+export const nftInit = (nftId, skipInitialState) => async (dispatch, getState) => {
     let data = {};
     const nftsInitial = getState().contracts.nfts;
 
@@ -139,6 +139,14 @@ const auctionInit = (nftId, skipInitialState) => async (dispatch, getState) => {
         dispatch({
             type: AUCTION_UPDATE,
             payload: formatAuction
+        });
+
+        dispatch({
+            type: NFT_UPDATE,
+            payload: {
+                id: nftId,
+                wasInit: true
+            }
         });
     }    
     else if (account.toLowerCase() === nftState.auction.owner && !nftState.auction.isOwner || 
@@ -500,6 +508,7 @@ export const withdrawAuction = (nftId) => async (dispatch, getState) => {
 }
 
 export const setCurrentNft = (nftId) => async (dispatch, getState) => {
+    const currentNftId = getState().contracts.currentNftId;
 
     if(nftId > 0) {
         dispatch({
@@ -507,6 +516,13 @@ export const setCurrentNft = (nftId) => async (dispatch, getState) => {
         });
     } 
     else {
+        dispatch({
+            type: NFT_UPDATE,
+            payload: {
+                id: currentNftId, wasInit: false
+            }
+        });
+
         dispatch({
             type: CONTRACTS_UPDATE, payload: {currentNftId: null}
         });

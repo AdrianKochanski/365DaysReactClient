@@ -76,6 +76,7 @@ const getDefaultNft = (id) => {
         temperature: 0,
         owner: ethers.constants.AddressZero,
         isLoading: false,
+        wasInit: false,
         auction: getDefaultAuction(id)
     };
 }

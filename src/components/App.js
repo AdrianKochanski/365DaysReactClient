@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Container, Row, Navbar, Nav, Image } from 'react-bootstrap';
+import { Container, Row, Navbar, Nav, Image, Spinner } from 'react-bootstrap';
 import propTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
