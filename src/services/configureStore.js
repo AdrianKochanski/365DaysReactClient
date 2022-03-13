@@ -21,7 +21,8 @@ const loadState = () => {
             day365Loading: false,
             auctionLoading: false,
             currentNftId: JSON.parse(localStorage.getItem('currentNftId')),
-            switchUpdate: JSON.parse(localStorage.getItem('switchUpdate'))
+            switchUpdate: JSON.parse(localStorage.getItem('switchUpdate')),
+            alertMessage: null
         }}
     } catch (err) {
       return undefined;

@@ -16,6 +16,7 @@ import NftCarousel from './NftCarousel';
 import NftDescription from './NftDescription';
 import { shortHash } from '../services/helpers';
 import ContractForms from './ContractForms';
+import Alert from './Alert';
 
 function App({account, contractsInit, saveSubscribe, currentNft, switchUpdateChange, switchUpdate}) {
   const accountRef = useRef(null);
@@ -44,12 +45,14 @@ function App({account, contractsInit, saveSubscribe, currentNft, switchUpdateCha
 
   return (
     <div>
+      <Alert/>
+
       <div style={{minHeight: '100vh'}}>
         <Navbar bg="dark" variant="dark">
           <Container>
             <Navbar.Brand href="/">365 DAY NFT</Navbar.Brand>
             <Nav className="me-auto">
-            <Form style={{color: 'white', margin: 'auto', alignItems: 'center', marginRight: '20px'}}>
+            <Form style={{color: 'white', margin: 'auto', alignItems: 'center', marginRight: '20px', margin: 'auto', textAlign: 'center'}}>
               <Form.Switch 
                 ref={switchRef}
                 id="update-switch"
@@ -96,7 +99,7 @@ function App({account, contractsInit, saveSubscribe, currentNft, switchUpdateCha
 
 App.propTypes = {
     account: propTypes.string.isRequired,
-    currentNft: propTypes.object.isRequired,
+    currentNft: propTypes.object,
     switchUpdate: propTypes.bool
 };
 

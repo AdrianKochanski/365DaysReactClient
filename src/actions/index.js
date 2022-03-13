@@ -5,7 +5,7 @@ import axios from 'axios';
 import { getBuffer, getBufferFromJson, getIpfsLink, getDefaultNft, getMetadata } from '../services/helpers';
 import ipfs from '../services/ipfs';
 
-import { CONTRACTS_DATA_INIT, CONTRACTS_UPDATE, AUCTION_UPDATE, NFT_UPDATE } from './types';
+import { CONTRACTS_DATA_INIT, CONTRACTS_UPDATE, AUCTION_UPDATE, NFT_UPDATE, SHOW_ALERT } from './types';
 
 export const contractsInit = (userConnect) => async dispatch => {
     const { ethereum } = window;
@@ -53,6 +53,12 @@ export const contractsInit = (userConnect) => async dispatch => {
     {
         console.log(err);
     }
+}
+
+export const setAlert = (variant, message) => async (dispatch, getState) => {
+    dispatch({
+        type: SHOW_ALERT, payload: {variant, message}
+    });
 }
 
 const nftsDataInit = () => async (dispatch, getState) => {
@@ -159,8 +165,8 @@ const auctionInit = (nftId) => async (dispatch, getState) => {
             }
         });
     }    
-    else if (account.toLowerCase() === nftState.auction.owner && !nftState.auction.isOwner || 
-        account.toLowerCase() === nftState.auction.winner && !nftState.auction.isWinner) {
+    else if ((account.toLowerCase() === nftState.auction.owner && !nftState.auction.isOwner) || 
+        (account.toLowerCase() === nftState.auction.winner && !nftState.auction.isWinner)) {
         dispatch({
             type: AUCTION_UPDATE,
             payload: {
@@ -378,6 +384,8 @@ export const cancelAuction = (nftId) => async (dispatch, getState) => {
                     isLoading: false
                 }
             });
+
+            dispatch(setAlert("success", "Action success!"));
         });
     } 
     catch (e) {
@@ -385,6 +393,7 @@ export const cancelAuction = (nftId) => async (dispatch, getState) => {
         dispatch({
             type: NFT_UPDATE, payload: {id: currentNftId, isLoading: false}
         });
+        dispatch(setAlert("danger", "Action error!"));
     }
 }
 
@@ -561,3 +570,4 @@ export const switchUpdateChange = (value) => async (dispatch, getState) => {
         });
     }
 }
+

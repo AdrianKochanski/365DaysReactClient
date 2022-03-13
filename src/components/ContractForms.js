@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import AuctionForm from './AuctionForm';
 import Days365Form from './Days365Form';

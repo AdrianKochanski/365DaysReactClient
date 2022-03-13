@@ -10,9 +10,9 @@ import { getOwner } from '../services/helpers';
 
 function NftCarousel({nfts, account, carouselView, onSelect, setCurrentNft}) {
 
-    const nftPlaceholder = () => {
+    const nftPlaceholder = (id) => {
         return (
-            <Carousel.Item>
+            <Carousel.Item key={id}>
                     <Image
                         className="d-block"
                         src="placeholder-image.png"
@@ -59,7 +59,7 @@ function NftCarousel({nfts, account, carouselView, onSelect, setCurrentNft}) {
                 <p style={{marginBottom: '0px'}}>{nft.description}</p>
                 </Carousel.Caption>
             </Carousel.Item>
-            : nftPlaceholder()
+            : nftPlaceholder(nft.id)
         );
     }
 
@@ -75,7 +75,7 @@ function NftCarousel({nfts, account, carouselView, onSelect, setCurrentNft}) {
         } 
         else {
             cards.push(
-                nftPlaceholder()
+                nftPlaceholder(0)
             );
         }
         
