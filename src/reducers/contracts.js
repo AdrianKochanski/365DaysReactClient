@@ -9,7 +9,8 @@ const INITIAL_STATE = {
     contractsConnected: false,
     day365Loading: false,
     auctionLoading: false,
-    currentNftId: null
+    currentNftId: null,
+    switchUpdate: false
 }
 
 export default (state = INITIAL_STATE, action) => {

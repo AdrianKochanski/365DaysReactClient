@@ -9,7 +9,7 @@ import { compose } from 'redux';
 import * as actions from '../actions/index';
 import { useParams, useNavigate } from "react-router-dom";
 
-function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidAuction, endAuction, withdrawAuction, setCurrentNft, nftInit, contractsConnected}) {
+function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidAuction, endAuction, withdrawAuction, setCurrentNft, nftInit, contractsConnected, switchUpdate}) {
     const { id } = useParams();
     const navigate = useNavigate();
     const currentNft = nfts[id-1] ? nfts[id-1] : getDefaultNft(id);
@@ -31,7 +31,10 @@ function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidA
 
     useEffect(() => {
         if(contractsConnected) {
-            nftInit(Number.parseInt(id), true);
+            nftInit(Number.parseInt(id));
+        }
+        else {
+            setCurrentNft(id);
         }
     }, []);
 
@@ -243,7 +246,7 @@ function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidA
                     </tr>
                 </tbody>
             </Table>
-            <div hidden={wasInit} style={{position: 'absolute', left: '0', top: '55px', width: '100%', height: '120%', backgroundColor: 'gray', opacity: '0.5'}}>
+            <div hidden={wasInit || !switchUpdate} style={{position: 'absolute', left: '0', top: '55px', width: '100%', height: '120%', backgroundColor: 'gray', opacity: '0.5'}}>
                 <Spinner style={{ marginTop: '50%', marginRight: 'auto', marginLeft: 'auto', position: 'absolute', left: '0', right: '0', textAlign: 'center', width: '50px', height: '50px', color: 'white'}} 
                 animation="border" role="status">
                     <span className="visually-hidden"></span>
@@ -257,14 +260,16 @@ function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidA
 NftDescription.propTypes = {
     account: propTypes.string.isRequired,
     nfts: propTypes.array,
-    contractsConnected: propTypes.bool
+    contractsConnected: propTypes.bool,
+    switchUpdate: propTypes.bool
 };
 
 function mapStateToProps(state) {
   return {
       account: state.contracts.account,
       nfts: state.contracts.nfts,
-      contractsConnected: state.contracts.contractsConnected
+      contractsConnected: state.contracts.contractsConnected,
+      switchUpdate: state.contracts.switchUpdate
   };
 }
 

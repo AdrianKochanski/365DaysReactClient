@@ -7,7 +7,7 @@ import ipfs from '../services/ipfs';
 
 import { CONTRACTS_DATA_INIT, CONTRACTS_UPDATE, AUCTION_UPDATE, NFT_UPDATE } from './types';
 
-export const contractsInit = (userConnect, skipInitialState) => async dispatch => {
+export const contractsInit = (userConnect) => async dispatch => {
     const { ethereum } = window;
 
     if(!ethereum){
@@ -44,7 +44,7 @@ export const contractsInit = (userConnect, skipInitialState) => async dispatch =
                 type: CONTRACTS_DATA_INIT,
                 payload: data
             });
-            dispatch(nftsDataInit(skipInitialState));
+            dispatch(nftsDataInit());
         }
         else {
           console.log("Did not found account to connect");
@@ -55,20 +55,21 @@ export const contractsInit = (userConnect, skipInitialState) => async dispatch =
     }
 }
 
-const nftsDataInit = (skipInitialState) => async (dispatch, getState) => {
+const nftsDataInit = () => async (dispatch, getState) => {
     const contract = getState().contracts.day365;
     let tokensCount = await contract.tokensCount();
 
     for(let i=0 ; i<tokensCount; i++) {
-        dispatch(nftInit(i+1, skipInitialState));
+        dispatch(nftInit(i+1));
     }
 }
 
-export const nftInit = (nftId, skipInitialState) => async (dispatch, getState) => {
+export const nftInit = (nftId) => async (dispatch, getState) => {
     let data = {};
     const nftsInitial = getState().contracts.nfts;
+    const switchUpdate = getState().contracts.switchUpdate;
 
-    if(skipInitialState || !nftsInitial[nftId-1])
+    if(switchUpdate || !nftsInitial[nftId-1])
     {
         let file;
         const contract = getState().contracts.day365;
@@ -103,15 +104,24 @@ export const nftInit = (nftId, skipInitialState) => async (dispatch, getState) =
             payload: data
         });
     }
+    else {
+        dispatch({
+            type: NFT_UPDATE,
+            payload: {
+                id: nftId, wasInit: !switchUpdate
+            }
+        });
+    }
 
-    dispatch(auctionInit(nftId, skipInitialState));
+    dispatch(auctionInit(nftId));
 }
 
-const auctionInit = (nftId, skipInitialState) => async (dispatch, getState) => {
+const auctionInit = (nftId) => async (dispatch, getState) => {
     const nftState = getState().contracts.nfts[nftId-1];
     const account = getState().contracts.account;
+    const switchUpdate = getState().contracts.switchUpdate;
 
-    if(skipInitialState || !nftState.auction.wasInit) {
+    if(switchUpdate || !nftState.auction.wasInit) {
         const auctioner = getState().contracts.auctioner;
     
         const auction = await auctioner.getAuction(nftId);
@@ -509,6 +519,7 @@ export const withdrawAuction = (nftId) => async (dispatch, getState) => {
 
 export const setCurrentNft = (nftId) => async (dispatch, getState) => {
     const currentNftId = getState().contracts.currentNftId;
+    const switchUpdate = getState().contracts.switchUpdate;
 
     if(nftId > 0) {
         dispatch({
@@ -519,12 +530,34 @@ export const setCurrentNft = (nftId) => async (dispatch, getState) => {
         dispatch({
             type: NFT_UPDATE,
             payload: {
-                id: currentNftId, wasInit: false
+                id: currentNftId, wasInit: !switchUpdate
             }
         });
 
         dispatch({
             type: CONTRACTS_UPDATE, payload: {currentNftId: null}
+        });
+    }
+}
+
+export const switchUpdateChange = (value) => async (dispatch, getState) => {
+    const nfts = getState().contracts.nfts;
+    const currentNftId = getState().contracts.currentNftId;
+
+    dispatch({
+        type: CONTRACTS_UPDATE, payload: {switchUpdate: !!value}
+    });
+
+    for (let nftId = 1; nftId <= nfts.length; nftId++) {
+        if(currentNftId == nftId) {
+            continue;
+        }
+
+        dispatch({
+            type: NFT_UPDATE,
+            payload: {
+                id: nftId, wasInit: !value
+            }
         });
     }
 }

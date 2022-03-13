@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Container, Row, Navbar, Nav, Image, Spinner } from 'react-bootstrap';
+import { Container, Row, Navbar, Nav, Image, Form } from 'react-bootstrap';
 import propTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
@@ -17,9 +17,10 @@ import NftDescription from './NftDescription';
 import { shortHash } from '../services/helpers';
 import ContractForms from './ContractForms';
 
-function App({account, contractsInit, saveSubscribe, currentNft}) {
+function App({account, contractsInit, saveSubscribe, currentNft, switchUpdateChange, switchUpdate}) {
   const accountRef = useRef(null);
   const contractRef = useRef(null);
+  const switchRef = useRef(null);
   const [carouselView, setCarouselView] = useState(0);
 
   const carouselViewHandler = (idx, e) => {
@@ -28,8 +29,9 @@ function App({account, contractsInit, saveSubscribe, currentNft}) {
 
   useEffect(() => {
     identiconAsync(process.env.REACT_APP_CONTRACT_ADDRESS, 80, contractRef);
-    contractsInit(false, false);
+    contractsInit(false);
     const unsubscibeSave = saveSubscribe();
+    switchRef.current.checked = switchUpdate;
     
     return () => {
       unsubscibeSave();
@@ -47,6 +49,14 @@ function App({account, contractsInit, saveSubscribe, currentNft}) {
           <Container>
             <Navbar.Brand href="/">365 DAY NFT</Navbar.Brand>
             <Nav className="me-auto">
+            <Form style={{color: 'white', margin: 'auto', alignItems: 'center', marginRight: '20px'}}>
+              <Form.Switch 
+                ref={switchRef}
+                id="update-switch"
+                label="Use Update"
+                onChange={(e) => {switchUpdateChange(e.target.checked)}}
+              />
+            </Form>
               <Image alt='Contract' ref={contractRef} style={{width: '40px', height: '40px'}} />
               <Nav.Link href={`https://etherscan.io/address/${process.env.REACT_APP_CONTRACT_ADDRESS}`}>
                 {'Contract: ' + shortHash(process.env.REACT_APP_CONTRACT_ADDRESS.toLowerCase())}
@@ -86,13 +96,15 @@ function App({account, contractsInit, saveSubscribe, currentNft}) {
 
 App.propTypes = {
     account: propTypes.string.isRequired,
-    currentNft: propTypes.object
+    currentNft: propTypes.object.isRequired,
+    switchUpdate: propTypes.bool
 };
 
 function mapStateToProps(state) {
   return {
       account: state.contracts.account,
-      currentNft: state.contracts.currentNftId ? state.contracts.nfts[state.contracts.currentNftId-1] : null
+      currentNft: state.contracts.currentNftId ? state.contracts.nfts[state.contracts.currentNftId-1] : null,
+      switchUpdate: state.contracts.switchUpdate
   };
 }
 

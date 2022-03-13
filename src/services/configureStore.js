@@ -20,7 +20,8 @@ const loadState = () => {
             contractsConnected: false,
             day365Loading: false,
             auctionLoading: false,
-            currentNftId: JSON.parse(localStorage.getItem('currentNftId'))
+            currentNftId: JSON.parse(localStorage.getItem('currentNftId')),
+            switchUpdate: JSON.parse(localStorage.getItem('switchUpdate'))
         }}
     } catch (err) {
       return undefined;
@@ -31,6 +32,7 @@ const saveState = (state) => {
     try {
       localStorage.setItem('day365Nfts', JSON.stringify(state.contracts.nfts));
       localStorage.setItem('currentNftId', JSON.stringify(state.contracts.currentNftId));
+      localStorage.setItem('switchUpdate', JSON.stringify(state.contracts.switchUpdate));
     } catch {
       // ignore write errors
     }
