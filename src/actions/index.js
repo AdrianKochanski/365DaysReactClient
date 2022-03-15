@@ -11,11 +11,8 @@ export const contractsInit = (userConnect) => async dispatch => {
     const { ethereum } = window;
 
     if(!ethereum){
-      console.log("Make sure you have Metamask installed!");
+      dispatch(setAlert("warning", "Make sure you have Metamask installed!"));
       return;
-    }
-    else {
-      console.log("Wallet is ready to connect!");
     }
 
     try{
@@ -29,7 +26,7 @@ export const contractsInit = (userConnect) => async dispatch => {
         }
     
         if(accounts.length !== 0) {
-            console.log("Connecting authorized account: "  + accounts[0]);
+            dispatch(setAlert("info", "Connecting authorized account: "  + accounts[0]));
             const provider = new ethers.providers.Web3Provider(ethereum);
             const signer = provider.getSigner();
 
@@ -47,11 +44,12 @@ export const contractsInit = (userConnect) => async dispatch => {
             dispatch(nftsDataInit());
         }
         else {
-          console.log("Did not found account to connect");
+          dispatch(setAlert("warning", "Connecting to wallet failed!"));
         }
     } catch(err)
     {
         console.log(err);
+        dispatch(setAlert("danger", "Connecting to wallet failed!"));
     }
 }
 
@@ -95,6 +93,7 @@ export const nftInit = (nftId) => async (dispatch, getState) => {
         }
         catch(err) {
             console.log(err);
+            dispatch(setAlert("danger", `Nft data fetch failed for nftId: ${nftId}`));
         }
     
         if(file) {
@@ -119,15 +118,15 @@ export const nftInit = (nftId) => async (dispatch, getState) => {
         });
     }
 
-    dispatch(auctionInit(nftId));
+    dispatch(auctionInit(nftId, false));
 }
 
-const auctionInit = (nftId) => async (dispatch, getState) => {
+const auctionInit = (nftId, isUpdate) => async (dispatch, getState) => {
     const nftState = getState().contracts.nfts[nftId-1];
     const account = getState().contracts.account;
     const switchUpdate = getState().contracts.switchUpdate;
 
-    if(switchUpdate || !nftState.auction.wasInit) {
+    if(isUpdate || switchUpdate || !nftState.auction.wasInit) {
         const auctioner = getState().contracts.auctioner;
     
         const auction = await auctioner.getAuction(nftId);
@@ -205,9 +204,7 @@ export const mintNft = (file, description, temperature, location, callback) => a
         const metadataHash = metadataResp[0].hash;
         const uri = getIpfsLink(metadataHash, metadata.name);
 
-        await contract.mintToken(uri, {value: ethers.utils.parseEther(currentFee)});
         id = parseInt(await contract.tokensCount()) + 1;
-
         const eventFilter = contract.filters.Transfer(ethers.constants.AddressZero, account, id);
 
         contract.provider.on(eventFilter, (log, event) => {
@@ -245,14 +242,18 @@ export const mintNft = (file, description, temperature, location, callback) => a
             if(callback) {
                 callback(id);
             }
+
+            dispatch(setAlert("success", "Minting succeed!"));
         });
 
+        await contract.mintToken(uri, {value: ethers.utils.parseEther(currentFee)});
       } 
       catch(e) {
         console.log(e);
         dispatch({
             type: CONTRACTS_UPDATE, payload: {day365Loading: false}
         });
+        dispatch(setAlert("danger", "Miniting failed!"));
       }
 }
 
@@ -280,7 +281,6 @@ export const updateNftUri = (nftId, file, description, temperature, location, ca
         const metadataResp = await ipfs.files.add(jsonBuffer);
         const metadataHash = metadataResp[0].hash;
         const uri = getIpfsLink(metadataHash, metadata.name);
-        await contract.setTokenURI(currentNftId, uri);
         const eventFilter = contract.filters.UriChange(currentNftId, null);
 
         contract.provider.on(eventFilter, (log, event) => {
@@ -298,12 +298,18 @@ export const updateNftUri = (nftId, file, description, temperature, location, ca
             if(callback) {
                 callback(currentNftId);
             }
+
+            dispatch(setAlert("success", "Update URI succeed!"));
         });
-      } catch (e) {
+
+        await contract.setTokenURI(currentNftId, uri);
+      } 
+      catch (e) {
         console.log(e);
         dispatch({
             type: CONTRACTS_UPDATE, payload: {day365Loading: false}
         });
+        dispatch(setAlert("danger", `Updating URI failed for nftId: ${nftId}`));
       }
 }
 
@@ -318,7 +324,6 @@ export const startAuction = (nftId, startPrice, daysEnd, callback) => async (dis
             type: CONTRACTS_UPDATE, payload: {auctionLoading: true}
         });
 
-        await contract.approve(auctioner.address, currentNftId);
         let approvalEvent = contract.filters.Approval(account, auctioner.address, currentNftId);
         let auctionStartEvent = auctioner.filters.Start(currentNftId, null, null);
         
@@ -344,13 +349,17 @@ export const startAuction = (nftId, startPrice, daysEnd, callback) => async (dis
                 callback();
             }
 
+            dispatch(setAlert("success", "Start auction succeed!"));
         });
+
+        await contract.approve(auctioner.address, currentNftId);
     } 
     catch (e) {
         console.log(e);
         dispatch({
             type: CONTRACTS_UPDATE, payload: {auctionLoading: false}
         });
+        dispatch(setAlert("danger", `Start auction failed for nftId: ${nftId}`));
     }
 }
 
@@ -364,7 +373,6 @@ export const cancelAuction = (nftId) => async (dispatch, getState) => {
             type: NFT_UPDATE, payload: {id: currentNftId, isLoading: true}
         });
 
-        await auctioner.cancel(currentNftId);
         let cancelEvent = auctioner.filters.Cancel(currentNftId, null);
         
         auctioner.provider.on(cancelEvent, async (log, event) => {
@@ -385,15 +393,17 @@ export const cancelAuction = (nftId) => async (dispatch, getState) => {
                 }
             });
 
-            dispatch(setAlert("success", "Action success!"));
+            dispatch(setAlert("success", "Cancel auction succeed!"));
         });
+
+        await auctioner.cancel(currentNftId);
     } 
     catch (e) {
         console.log(e);
         dispatch({
             type: NFT_UPDATE, payload: {id: currentNftId, isLoading: false}
         });
-        dispatch(setAlert("danger", "Action error!"));
+        dispatch(setAlert("danger", `Cancel auction failed for nftId: ${nftId}`));
     }
 }
 
@@ -401,8 +411,6 @@ export const bidAuction = (nftId, price, callback) => async (dispatch, getState)
     const currentNftId = Number.parseInt(nftId);
     const auctioner = getState().contracts.auctioner;
     const account = getState().contracts.account;
-    console.log(currentNftId-1);
-    console.log(getState().contracts.nfts[currentNftId-1]);
     const auction = getState().contracts.nfts[currentNftId-1].auction;
     let nextPrice = Number.parseFloat(price);
 
@@ -415,7 +423,6 @@ export const bidAuction = (nftId, price, callback) => async (dispatch, getState)
             type: NFT_UPDATE, payload: {id: currentNftId, isLoading: true}
         });
 
-        await auctioner.bid(currentNftId, {value: ethers.utils.parseEther(price)});
         let bidEvent = auctioner.filters.Bid(currentNftId, account, null);
         
         auctioner.provider.on(bidEvent, async (log, event) => {
@@ -436,13 +443,18 @@ export const bidAuction = (nftId, price, callback) => async (dispatch, getState)
             if(callback) {
                 callback();
             }
+
+            dispatch(setAlert("success", "Bid auction succeed!"));
         });
+
+        await auctioner.bid(currentNftId, {value: ethers.utils.parseEther(price)});
     } 
     catch (e) {
         console.log(e);
         dispatch({
             type: NFT_UPDATE, payload: {id: currentNftId, isLoading: false}
         });
+        dispatch(setAlert("danger", `Bid auction failed for nftId: ${nftId}`));
     }
 }
 
@@ -462,7 +474,6 @@ export const endAuction = (nftId) => async (dispatch, getState) => {
             type: NFT_UPDATE, payload: {id: currentNftId, isLoading: true}
         });
 
-        await auctioner.end(currentNftId);
         let endEvent = auctioner.filters.End(currentNftId, null, null);
         
         auctioner.provider.on(endEvent, async (log, event) => {
@@ -482,13 +493,18 @@ export const endAuction = (nftId) => async (dispatch, getState) => {
                     isLoading: false
                 }
             });
+
+            dispatch(setAlert("success", "End auction succeed!"));
         });
+
+        await auctioner.end(currentNftId);
     } 
     catch (e) {
         console.log(e);
         dispatch({
             type: NFT_UPDATE, payload: {id: currentNftId, isLoading: false}
         });
+        dispatch(setAlert("danger", `End auction failed for nftId: ${nftId}`));
     }
 }
 
@@ -502,7 +518,6 @@ export const withdrawAuction = (nftId) => async (dispatch, getState) => {
             type: NFT_UPDATE, payload: {id: currentNftId, isLoading: true}
         });
 
-        await auctioner.withdraw(currentNftId);
         let withdrawEvent = auctioner.filters.Withdraw(currentNftId, account, null);
         
         auctioner.provider.on(withdrawEvent, async (log, event) => {
@@ -516,13 +531,18 @@ export const withdrawAuction = (nftId) => async (dispatch, getState) => {
             dispatch({
                 type: NFT_UPDATE, payload: {id: currentNftId, isLoading: false}
             });
+
+            dispatch(setAlert("success", "Withdraw succeed!"));
         });
+
+        await auctioner.withdraw(currentNftId);
     } 
     catch (e) {
         console.log(e);
         dispatch({
             type: NFT_UPDATE, payload: {id: currentNftId, isLoading: false}
         });
+        dispatch(setAlert("danger", `Withdraw failed for nftId: ${nftId}`));
     }
 }
 

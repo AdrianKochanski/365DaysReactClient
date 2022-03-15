@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import { compose } from 'redux';
 import * as actions from '../actions/index';
 import { useParams, useNavigate } from "react-router-dom";
+import throttle from 'lodash/throttle';
 
 function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidAuction, endAuction, withdrawAuction, setCurrentNft, nftInit, contractsConnected, switchUpdate}) {
     const { id } = useParams();
@@ -24,7 +25,7 @@ function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidA
     const bidHandler = async () => {
         const price = bidFormRef.current[0].value;
 
-        bidAuction(price, () => {
+        bidAuction(id, price, () => {
             bidFormRef.current[0].value = null;
         });
     }
@@ -246,7 +247,7 @@ function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidA
                     </tr>
                 </tbody>
             </Table>
-            <div hidden={wasInit || !switchUpdate} style={{position: 'absolute', left: '0', top: '55px', width: '100%', height: '120%', backgroundColor: 'gray', opacity: '0.5'}}>
+            <div hidden={wasInit || !switchUpdate} style={{position: 'absolute', left: '0', top: '55px', width: '100%', height: '120%', backgroundColor: 'gray', opacity: '0.5', zIndex: '10'}}>
                 <Spinner style={{ marginTop: '50%', marginRight: 'auto', marginLeft: 'auto', position: 'absolute', left: '0', right: '0', textAlign: 'center', width: '50px', height: '50px', color: 'white'}} 
                 animation="border" role="status">
                     <span className="visually-hidden"></span>

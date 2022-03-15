@@ -3,6 +3,7 @@ import propTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import * as actions from '../actions/index';
+import './Aler.css';
 import { Alert } from 'react-bootstrap';
 
 function CustomAlert({alertMessage}) {
@@ -27,7 +28,7 @@ function CustomAlert({alertMessage}) {
             variant: variant,
             message: message
             });
-        }, 3000);
+        }, 4000);
     }
 
     useEffect(() => {
@@ -37,8 +38,8 @@ function CustomAlert({alertMessage}) {
     }, [alertMessage]);
     
     return (
-        <div hidden={alerts.hidden} style={{position: 'absolute', left: '50%', zIndex: '10', top: '35px', minWidth: '300px'}}>
-            <Alert style={{position: 'relative', left: '-50%', textAlign: 'center'}} variant={alerts.variant}>
+        <div className='alert-position slide-top-fade-out' hidden={alerts.hidden}>
+            <Alert className='alert-align' variant={alerts.variant}>
                 {alerts.message}
             </Alert>
         </div>
