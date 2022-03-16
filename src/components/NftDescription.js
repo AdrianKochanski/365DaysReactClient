@@ -8,7 +8,6 @@ import { connect } from 'react-redux';
 import { compose } from 'redux';
 import * as actions from '../actions/index';
 import { useParams, useNavigate } from "react-router-dom";
-import throttle from 'lodash/throttle';
 
 function NftDescription({nfts, carouselViewHandler, account, cancelAuction, bidAuction, endAuction, withdrawAuction, setCurrentNft, nftInit, contractsConnected, switchUpdate}) {
     const { id } = useParams();

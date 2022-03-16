@@ -52,7 +52,7 @@ function App({account, contractsInit, saveSubscribe, currentNft, switchUpdateCha
           <Container>
             <Navbar.Brand href="/">365 DAY NFT</Navbar.Brand>
             <Nav className="me-auto">
-            <Form style={{color: 'white', margin: 'auto', alignItems: 'center', marginRight: '20px', margin: 'auto', textAlign: 'center'}}>
+            <Form style={{color: 'white', margin: 'auto', alignItems: 'center', marginRight: '20px', textAlign: 'center'}}>
               <Form.Switch 
                 ref={switchRef}
                 id="update-switch"
