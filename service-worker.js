@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/day365/precache-manifest.c6106c82be1997a06479db5cccc8a08d.js"
+  "/day365/precache-manifest.87631ad9b1d1a29bd9d0bbcd17b7b385.js"
 );
 
 workbox.clientsClaim();
