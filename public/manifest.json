@@ -1,11 +1,11 @@
 {
-  "short_name": "Starter Kit",
-  "name": "Dapp University Starter Kit",
+  "short_name": "DAY",
+  "name": "Days 365 NFT",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "placeholder-image.png",
+      "sizes": "800x600",
+      "type": "image"
     }
   ],
   "start_url": ".",
