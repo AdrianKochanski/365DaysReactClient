@@ -30,6 +30,7 @@
   "scripts": {
     "start": "react-scripts --max_old_space_size=4096 start",
     "start:production": "env-cmd -f ./.env.production npm run-script start",
+    "heroku:start": "heroku run npm run-script start",
     "build": "react-scripts --max_old_space_size=4096 build",
     "build:production": "env-cmd -f ./.env.production npm run-script build",
     "test": "react-scripts test",
