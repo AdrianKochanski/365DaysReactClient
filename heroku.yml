@@ -1,0 +1,7 @@
+build:
+  docker:
+    web: Dockerfile.prod
+run:
+  # web: nginx -g daemon off;
+  # web: docker run -it --rm -p 1337:80 365daysnft:prod
+  web: bundle exec puma -C config/puma.rb
