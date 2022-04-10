@@ -6,7 +6,7 @@ import { compose } from "redux";
 import * as actions from "../actions/index";
 import { Link } from "react-router-dom";
 
-import { getOwner } from "../services/helpers";
+import { getOwner, getDefaultNft } from "../services/helpers";
 
 function NftCarousel({ nfts, account, carouselView, onSelect, setCurrentNft }) {
   const nftPlaceholder = () => {
@@ -26,8 +26,12 @@ function NftCarousel({ nfts, account, carouselView, onSelect, setCurrentNft }) {
     );
   };
 
-  const nftItem = (nft) => {
-    return nft ? (
+  const nftItem = (nft, idx) => {
+    if (!nft) {
+      nft = getDefaultNft(idx);
+    }
+
+    return (
       <Carousel.Item key={nft.id}>
         <Image
           className="d-block"
@@ -87,8 +91,6 @@ function NftCarousel({ nfts, account, carouselView, onSelect, setCurrentNft }) {
           <p style={{ marginBottom: "0px" }}>{nft.description}</p>
         </Carousel.Caption>
       </Carousel.Item>
-    ) : (
-      nftPlaceholder()
     );
   };
 
@@ -96,8 +98,8 @@ function NftCarousel({ nfts, account, carouselView, onSelect, setCurrentNft }) {
     const cards = [];
 
     if (nfts && nfts.length > 0) {
-      nfts.forEach((nft) => {
-        cards.push(nftItem(nft));
+      nfts.forEach((nft, idx) => {
+        cards.push(nftItem(nft, idx));
       });
     } else {
       cards.push(nftPlaceholder(0));

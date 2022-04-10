@@ -96,7 +96,6 @@ export const nftInit = (nftId) => async (dispatch, getState) => {
   const switchUpdate = getState().contracts.switchUpdate;
 
   if (switchUpdate || !nftsInitial[nftId - 1]) {
-    if (nftId == 3) return;
     let file;
     const contract = getState().contracts.day365;
     const tokenUri = await contract.tokenURI(nftId);
