@@ -1,5 +1,7 @@
 build:
   docker:
     web: Dockerfile.prod
+  config:
+    NODE_ENV: production
 run:
-  web: npm start:production
+  web: npm run start:production
