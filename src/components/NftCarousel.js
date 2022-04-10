@@ -27,71 +27,74 @@ function NftCarousel({ nfts, account, carouselView, onSelect, setCurrentNft }) {
   };
 
   const nftItem = (nft, idx) => {
-    if (!nft) {
-      nft = getDefaultNft(idx);
-    }
-
-    return (
-      <Carousel.Item key={nft.id}>
-        <Image
-          className="d-block"
-          src={nft.image ? nft.image : "placeholder-image.png"}
-          alt={"Owned by: " + getOwner(nft, account, false)}
-          style={{ width: "46rem", height: "28rem", objectFit: "cover" }}
-        />
-        <Carousel.Caption>
-          {nft &&
-          nft.auction &&
-          nft.auction.isStarted &&
-          !nft.auction.isEnded ? (
-            <p
-              style={{
-                backgroundColor: "blue",
-                color: "yellow",
-                marginBottom: "0px",
-                fontWeight: "bold",
-                width: "170px",
-                margin: "auto",
-              }}
-            >
-              {getOwner(nft, account, false) + " " + nft.auction.price + " ETH"}
-            </p>
-          ) : (
-            <p
-              style={{
-                backgroundColor: "white",
-                color: "black",
-                marginBottom: "0px",
-                fontWeight: "bold",
-                width: "170px",
-                margin: "auto",
-              }}
-            >
-              {getOwner(nft, account, false)}
-            </p>
-          )}
-          <Button
-            style={{ margin: "5px 0px 5px 0px" }}
-            variant="primary"
-            type="button"
-          >
-            <p style={{ marginBottom: "0px" }}>
-              <Link
-                onClick={() => {
-                  setCurrentNft(nft.id);
+    if (nft != null) {
+      return (
+        <Carousel.Item key={nft.id}>
+          <Image
+            className="d-block"
+            src={nft.image ? nft.image : "placeholder-image.png"}
+            alt={"Owned by: " + getOwner(nft, account, false)}
+            style={{ width: "46rem", height: "28rem", objectFit: "cover" }}
+          />
+          <Carousel.Caption>
+            {nft &&
+            nft.auction &&
+            nft.auction.isStarted &&
+            !nft.auction.isEnded ? (
+              <p
+                style={{
+                  backgroundColor: "blue",
+                  color: "yellow",
+                  marginBottom: "0px",
+                  fontWeight: "bold",
+                  width: "170px",
+                  margin: "auto",
                 }}
-                style={{ textDecoration: "none", color: "white" }}
-                to={`/nfts/${nft.id}`}
-                key={nft.id}
               >
-                {nft.uri && nft.name ? "#" + nft.name : "Details.."}
-              </Link>
-            </p>
-          </Button>
-          <p style={{ marginBottom: "0px" }}>{nft.description}</p>
-        </Carousel.Caption>
-      </Carousel.Item>
-    );
+                {getOwner(nft, account, false) +
+                  " " +
+                  nft.auction.price +
+                  " ETH"}
+              </p>
+            ) : (
+              <p
+                style={{
+                  backgroundColor: "white",
+                  color: "black",
+                  marginBottom: "0px",
+                  fontWeight: "bold",
+                  width: "170px",
+                  margin: "auto",
+                }}
+              >
+                {getOwner(nft, account, false)}
+              </p>
+            )}
+            <Button
+              style={{ margin: "5px 0px 5px 0px" }}
+              variant="primary"
+              type="button"
+            >
+              <p style={{ marginBottom: "0px" }}>
+                <Link
+                  onClick={() => {
+                    setCurrentNft(nft.id);
+                  }}
+                  style={{ textDecoration: "none", color: "white" }}
+                  to={`/nfts/${nft.id}`}
+                  key={nft.id}
+                >
+                  {nft.uri && nft.name ? "#" + nft.name : "Details.."}
+                </Link>
+              </p>
+            </Button>
+            <p style={{ marginBottom: "0px" }}>{nft.description}</p>
+          </Carousel.Caption>
+        </Carousel.Item>
+      );
+    } else {
+      return nftPlaceholder();
+    }
   };
 
   const getItems = () => {
@@ -102,7 +105,7 @@ function NftCarousel({ nfts, account, carouselView, onSelect, setCurrentNft }) {
         cards.push(nftItem(nft, idx));
       });
     } else {
-      cards.push(nftPlaceholder(0));
+      cards.push(nftPlaceholder());
     }
 
     return cards;
