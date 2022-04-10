@@ -30,9 +30,15 @@
   "scripts": {
     "start": "react-scripts --max_old_space_size=4096 start",
     "start:production": "env-cmd -f ./.env.production npm run-script start",
-    "heroku:start": "heroku run npm run-script start",
     "build": "react-scripts --max_old_space_size=4096 build",
     "build:production": "env-cmd -f ./.env.production npm run-script build",
+    "heroku:start": "heroku run npm run-script start",
+    "heroku:push": "git push heroku master",
+    "docker:build": "docker build -f ./Dockerfile -t 365daysnft .",
+    "docker:run": "docker run -it --rm -v \"%cd%\":/app -v /app/node_modules -p 3001:3000 -e CHOKIDAR_USEPOLLING=true 365daysnft",
+    "docker:tag": "docker tag 365daysnft registry.heroku.com/day365/web",
+    "heroku:push:image": "docker push registry.heroku.com/day365/web",
+    "heroku:release:image": "heroku container:release web",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

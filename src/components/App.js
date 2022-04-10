@@ -31,7 +31,6 @@ function App({
   const navigate = useNavigate();
 
   const carouselViewHandler = (idx, e) => {
-    console.log("set view to: " + idx);
     setCarouselView(idx);
   };
 
